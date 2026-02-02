@@ -195,11 +195,13 @@ def main():
     if model_exists:
         model = load_model(MODEL_PATH, model)
 
+    model.to(DEVICE)
     loss_fn = nn.CrossEntropyLoss()  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.5)
+
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
         train(TRAIN_LOADER, model, loss_fn, optimizer)
