@@ -47,11 +47,12 @@ BATCH_SIZE = 64
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-DEVICE = (
-    torch.accelerator.current_accelerator().type
-    if torch.accelerator.is_available()
-    else "cpu"
-)
+# DEVICE = (
+#     torch.accelerator.current_accelerator().type
+#     if torch.accelerator.is_available()
+#     else "cpu"
+# )
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("Device: ", DEVICE)
 
