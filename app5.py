@@ -74,7 +74,7 @@ MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 1
+EPOCHS = 5
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -170,6 +170,8 @@ def eval2(testloader, model: Net, classes):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
             # collect the correct predictions for each class
