@@ -189,6 +189,7 @@ def eval2(testloader, model: Net, classes):
 def main():
 
     # requirements()
+    t_start = datetime.now()
 
     model = MODEL
     model_exists = file_exists(MODEL_PATH)
@@ -207,11 +208,24 @@ def main():
         train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
         scheduler.step()
-    print("Done!")
+    print("\nEnd of Training!")
+    t_end = datetime.now() - t_start
+    print("##########################\n")
+    print(f"# Training time: {t_end} #\n")
+    print("##########################\n")
+    print("Evaluation...")
     save_model(model, path=MODEL_PATH)
     classes_list = list(CLASSES.values())
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
+    print("End of Evaluation!")
+    t_eva = datetime.now() - t_end
+    t_total = datetime.now() - t_start
+    print("##########################\n")
+    print(f"# Evaluation time: {t_eva} #\n")
+    print("##########################\n")
+    print(f"# Total elapsed time: {t_total} #\n")
+    print("##########################\n")
 
 
 if __name__ == "__main__":
