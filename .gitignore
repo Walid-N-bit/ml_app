@@ -1,3 +1,9 @@
 venv_ml/
 notebook.ipynb
 models/
+data/
+pokemon-images-and-types/
+tester.py
+compressed_images_wheat/
+compressed_images_wheat*
+*.png

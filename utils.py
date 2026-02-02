@@ -1,7 +1,9 @@
 import subprocess
 import os
+import pandas as pd
+import matplotlib.pyplot as plt
 import torch
-from NeuralNetwork import NeuralNetwork
+from CustomClasses import NeuralNetwork
 
 
 def cmd(input: str) -> str:
@@ -44,7 +46,7 @@ def save_model(model, path: str):
     torch.save(model.state_dict(), path)
 
 
-def load_model(path: str, device):
+def load_model(path: str, model):
     """
     load PyTorch model from file if file exists.
     return an initial model otherwise.
@@ -53,27 +55,68 @@ def load_model(path: str, device):
     :type path: str
     :param device: device the model uses
     """
-    model = NeuralNetwork().to(device)
-    model_exists = file_exists(path)
-    if model_exists:
-        model.load_state_dict(torch.load(path, weights_only=True))
+    # model = NeuralNetwork().to(device)
+    model.load_state_dict(torch.load(path, weights_only=True))
     return model
 
 
-def evaluate_model(model, test_data, device, classes: list):
+def class_to_index(classes: list):
     """
-    evaluate model accuracy against a list of classes
+    create a class:index dictionary from a list of classes
 
-    :param model: PyTorch model
-    :param test_data: testing data
-    :param device: device that the model runs on
-    :param classes: data classes
+    :param classes: classes
     :type classes: list
     """
-    model.eval()
-    x, y = test_data[0][0], test_data[0][1]
-    with torch.no_grad():
-        x = x.to(device)
-        pred = model(x)
-        predicted, actual = classes[pred[0].argmax(0)], classes[y]
-        print(f'Predicted: "{predicted}", Actual: "{actual}"')
+    return {k: i for k, i in zip(classes, range(len(classes)))}
+
+
+def image_shape(image):
+    channel, height, width = tuple(image.shape)
+    return channel, height, width
+
+def prep_image(image:torch.Tensor):
+    image = image.detach().cpu()
+
+    # Remove batch dimension if present
+    if image.dim() == 4:
+        image = image.squeeze(0)
+
+    # If channels-first (C,H,W), move to (H,W,C)
+    if image.dim() == 3:
+        image = image.permute(1, 2, 0)
+
+    # If grayscale, drop channel dimension
+    if image.shape[-1] == 1:
+        image = image.squeeze(-1)
+    return image
+
+def save_img(image, label):
+    image = prep_image(image)
+    plt.figure()
+    plt.imshow(image)
+    plt.title(label)
+    plt.axis("off")
+    plt.savefig("output.png")
+    plt.close()
+
+def show_predictions(data:list):
+
+    fig, axes = plt.subplots(2, 3, figsize=(3 * 3, 2 * 3))
+    axes = axes.flatten()
+
+    for i, (img, label) in enumerate(data):
+        img = prep_image(img)
+        axes[i].imshow(img)
+        axes[i].set_title(str(label))
+        axes[i].axis("off")
+
+    # Hide unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis("off")
+
+    plt.tight_layout()
+    plt.savefig("output.png")
+    plt.close()
+
+
+

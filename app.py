@@ -1,16 +1,27 @@
 from utils import *
 from init import *
-from NeuralNetwork import NeuralNetwork
+from CustomClasses import NeuralNetwork, ImageDataset, CNN
 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-# from torchvision import datasets
-from torchvision.transforms import ToTensor
+from torchvision import datasets
+from torchvision.transforms import ToTensor, Lambda
 
-TRAINING_DATA = ""
-TESTING_DATA = ""
+TRAINING_DATA = datasets.FashionMNIST(
+    root="data", train=True, download=False, transform=ToTensor()
+)
+TESTING_DATA = datasets.FashionMNIST(
+    root="data", train=False, download=False, transform=ToTensor()
+)
+
+IMAGE, _ = TRAINING_DATA[0]
+_, H, W = image_shape(IMAGE)
+
+CLASSES = TRAINING_DATA.classes
+
+
 BATCH_SIZE = 64
 
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE)
@@ -22,8 +33,9 @@ DEVICE = (
     else "cpu"
 )
 
-MODEL = NeuralNetwork().to(DEVICE)
-MODEL_PATH = "models"
+# MODEL = NeuralNetwork(input_size=H * W, output_size=len(CLASSES)).to(DEVICE)
+MODEL = NeuralNetwork(input_size=H * W, output_size=len(CLASSES)).to(DEVICE)
+MODEL_PATH = "models/model.pth"
 
 EPOCHS = 5
 
@@ -66,11 +78,39 @@ def test(dataloader, model, loss_fn):
     )
 
 
+def evaluate_model(model, test_data, device, classes: list):
+    """
+    evaluate model accuracy against a list of classes
+
+    :param model: PyTorch model
+    :param test_data: testing data
+    :param device: device that the model runs on
+    :param classes: data classes
+    :type classes: list
+    """
+    model.eval()
+    sample_idx = torch.randint(len(test_data), size=(1,)).item()
+    # x, y = test_data[0][0], test_data[0][1]
+    image, label = test_data[sample_idx]
+    with torch.no_grad():
+        image = image.to(device)
+        pred = model(image)
+        predicted, actual = classes[pred[0].argmax(0)], classes[label]
+        save_img(image, predicted)
+        print(f'Predicted: "{predicted}", Actual: "{actual}"')
+
+
 def main():
 
-    model = load_model(MODEL_PATH, DEVICE)
+    # requirements()
 
-    loss_fn = nn.CrossEntropyLoss()
+    model = MODEL
+    model_exists = file_exists(MODEL_PATH)
+    if model_exists:
+        model = load_model(MODEL_PATH, DEVICE, model)
+
+    loss_fn = nn.CrossEntropyLoss()  # for single class
+    # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
     for t in range(EPOCHS):
@@ -78,4 +118,9 @@ def main():
         train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
     print("Done!")
+    save_model(model, path=MODEL_PATH)
+    evaluate_model(model, TESTING_DATA, DEVICE, CLASSES)
 
+
+if __name__ == "__main__":
+    main()
