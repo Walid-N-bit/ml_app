@@ -99,7 +99,7 @@ def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-            val_loss.append(loss.item())
+            val_loss.append(loss)
     val_loss = sum(val_loss) / len(val_loss)
     return val_loss
 
