@@ -152,6 +152,8 @@ def eval2(testloader, model: Net, classes):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
             # calculate outputs by running images through the network
             outputs = model(images)
             # the class with the highest energy is what we choose as prediction
