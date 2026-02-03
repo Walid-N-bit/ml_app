@@ -74,7 +74,7 @@ MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 5
+EPOCHS = 20
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -205,7 +205,7 @@ def main():
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.5)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
