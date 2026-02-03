@@ -5,6 +5,8 @@ import pandas as pd
 import glob
 from PIL import Image
 import re
+import numpy as np
+import torch
 
 # def get_dirs(folder: str) -> list:
 #     """
@@ -229,6 +231,28 @@ def images_data_csv(
     test_data = data_prep(clean_test_dirs)
     save_data(train_data, "train")
     save_data(test_data, "test")
+
+
+def data_summary(data_path: str) -> dict:
+    data = pd.read_csv(data_path)
+    df = pd.DataFrame(data)
+    class_names = sorted(set(df["class_name"].tolist()))
+    total_size = len(df.index)
+    size_per_class = {}
+    for c in class_names:
+        count = sum(df["class_name"] == c)
+        size_per_class.update({c: count})
+    stats = dict(total_size=total_size, size_per_class=size_per_class)
+    return stats
+
+
+def get_class_weights(data_path: str):
+    data = pd.read_csv(data_path)
+    _, counts = np.unique(data["class_name"], return_counts=True)
+    class_counts = torch.tensor(counts)
+    total_samples = class_counts.sum()
+    class_weights = total_samples / (class_counts * len(class_counts))
+    return class_weights / class_weights.sum()
 
 
 class WheatImgDataset(Dataset):

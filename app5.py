@@ -6,11 +6,11 @@ from torchvision.models import MobileNet_V3_Small_Weights
 import torch
 from torch.optim import lr_scheduler
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import datasets
 from torchvision import transforms
 
-from wheat_data_utils import WheatImgDataset, labels_map_from_csv
+from wheat_data_utils import WheatImgDataset, labels_map_from_csv, get_class_weights
 
 from torchinfo import summary
 
@@ -18,7 +18,14 @@ from datetime import datetime
 from tempfile import TemporaryDirectory
 
 # imagenet images are 224x224 so we resize our custom data to 224
-TRANSFORM = transforms.Compose([transforms.Resize(224), transforms.ToTensor()])
+TRANSFORM = transforms.Compose(
+    [
+        transforms.Resize(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
+
 
 # TRAINING_DATA = datasets.CIFAR10(
 #     root="data", train=True, download=False, transform=TRANSFORM
@@ -71,10 +78,11 @@ MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
+CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 10
+EPOCHS = 20
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -207,7 +215,7 @@ def main():
         model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss()  # for single class
+    loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
