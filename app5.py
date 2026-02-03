@@ -42,7 +42,7 @@ CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
 
 print(f"\nClasses are:\n{CLASSES}\n")
 
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -74,7 +74,7 @@ MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 20
+EPOCHS = 10
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -82,6 +82,8 @@ EPOCHS = 20
 def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
+    val_loss = []
+
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(DEVICE), y.to(DEVICE)
 
@@ -97,6 +99,9 @@ def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            val_loss.append(loss.item())
+    val_loss = sum(val_loss) / len(val_loss)
+    return val_loss
 
 
 def test(dataloader, model: Net, loss_fn):
@@ -184,10 +189,11 @@ def eval2(testloader, model: Net, classes):
 
     # print accuracy for each class
     for classname, correct_count in correct_pred.items():
-        accuracy = 0
-        if total_pred[classname] != 0:
+        if total_pred[classname] == 0:
+            print(f"Total predictions for {classname} = {total_pred[classname]}")
+        else:
             accuracy = 100 * float(correct_count) / total_pred[classname]
-        print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
+            print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
 
 
 def main():
@@ -205,13 +211,16 @@ def main():
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
-        train(TRAIN_LOADER, model, loss_fn, optimizer)
+        val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
-        scheduler.step()
+        # scheduler.step()
+        scheduler.step(val_loss)
+
     print("\nEnd of Training!")
     t_end = datetime.now() - t_start
     print("##########################\n")
