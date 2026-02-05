@@ -219,7 +219,8 @@ def main():
     loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
