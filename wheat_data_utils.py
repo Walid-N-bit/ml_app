@@ -212,7 +212,7 @@ def images_data_csv(
     def data_prep(paths: list[str]):
         data = []
         for path in paths:
-            match = re.search(r"Batch/(.*?)/segmented_256_lcr_png", path)
+            match = re.search(r"/([^/]+)/segmented_256_lcr_png", path)
             path = Path(path)
             name = path.name
             class_name = match.group(1)

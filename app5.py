@@ -97,6 +97,7 @@ def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
 
         # Compute prediction error
         pred = model(X)
+
         loss = loss_fn(pred, y)
 
         # Backpropagation
