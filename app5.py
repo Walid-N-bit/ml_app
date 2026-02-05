@@ -82,7 +82,7 @@ CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 20
+EPOCHS = 10
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
