@@ -82,7 +82,7 @@ CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 10
+EPOCHS = 30
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -220,7 +220,8 @@ def main():
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
+    # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
