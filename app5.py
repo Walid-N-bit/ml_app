@@ -53,15 +53,11 @@ print(f"Images shape: {C, H, W}")
 CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
 print(f"\nClasses are:\n{CLASSES}\n")
 
-CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
-print("Class weights:\n", list(CLASS_WEIGHTS))
+# CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
+# print("Class weights:\n", list(CLASS_WEIGHTS))
 
-TRAIN_SAMPLER = oversampler(
-    data_path="compressed_images_wheat/train.csv", weights=CLASS_WEIGHTS
-)
-TESTING_SAMPLER = oversampler(
-    data_path="compressed_images_wheat/test.csv", weights=CLASS_WEIGHTS
-)
+TRAIN_SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
+TESTING_SAMPLER = oversampler(data_path="compressed_images_wheat/test.csv")
 
 
 BATCH_SIZE = 16
