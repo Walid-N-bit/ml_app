@@ -257,15 +257,17 @@ def get_class_weights(data_path: str) -> torch.Tensor:
     return class_weights / class_weights.sum()
 
 
-def oversampler(data_path: str, weights: torch.Tensor) -> WeightedRandomSampler:
-    data = pd.read_csv(data_path)
-    label_map = labels_map_from_csv(data_path)
+def oversampler(data_path: str) -> WeightedRandomSampler:
 
+    from collections import Counter
+
+    data = pd.read_csv(data_path)
+    class_counts = Counter(data["class_name"])  # counter dict
+    class_sample_weights = {c: 1.0 / count for c, count in class_counts.items()}
     sample_weights = [0] * len(data)
     for idx, item in data.iterrows():
         class_name = item["class_name"]
-        label = get_label(label_map, class_name)
-        class_weight = weights[label]
+        class_weight = class_sample_weights.get(class_name)
         sample_weights[idx] = class_weight
     sampler = WeightedRandomSampler(
         sample_weights, num_samples=len(sample_weights), replacement=True
