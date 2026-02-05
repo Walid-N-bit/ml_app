@@ -19,6 +19,7 @@ from tempfile import TemporaryDirectory
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device: ", DEVICE)
 
 # imagenet images are 224x224 so we resize our custom data to 224
 TRANSFORM = transforms.Compose(
@@ -46,15 +47,22 @@ TESTING_DATA = WheatImgDataset(
 
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)
+print(f"Images shape: {C, H, W}")
+
 
 CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
+print(f"\nClasses are:\n{CLASSES}\n")
 
 CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
 
-TRAIN_SAMPLER = oversampler(TRAINING_DATA, CLASS_WEIGHTS)
-TESTING_SAMPLER = oversampler(TESTING_DATA, CLASS_WEIGHTS)
-
-print(f"\nClasses are:\n{CLASSES}\n")
+TRAIN_SAMPLER = oversampler(
+    data_path="compressed_images_wheat/train.csv", weights=CLASS_WEIGHTS
+)
+TESTING_SAMPLER = oversampler(
+    data_path="compressed_images_wheat/test.csv", weights=CLASS_WEIGHTS
+)
+print(f"Train sampler:\n{list(TRAIN_SAMPLER.weights)}\n")
+print(f"Test sampler:\n{list(TESTING_SAMPLER.weights)}\n")
 
 BATCH_SIZE = 16
 
@@ -64,7 +72,6 @@ BATCH_SIZE = 16
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=TRAIN_SAMPLER)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, sampler=TESTING_SAMPLER)
 
-print("Device: ", DEVICE)
 
 Net = models.MobileNetV3
 
