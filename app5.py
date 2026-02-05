@@ -10,12 +10,15 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import datasets
 from torchvision import transforms
 
-from wheat_data_utils import WheatImgDataset, labels_map_from_csv, get_class_weights
+from wheat_data_utils import WheatImgDataset, get_class_weights, oversampler
 
 from torchinfo import summary
 
 from datetime import datetime
 from tempfile import TemporaryDirectory
+
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # imagenet images are 224x224 so we resize our custom data to 224
 TRANSFORM = transforms.Compose(
@@ -46,20 +49,20 @@ C, H, W = image_shape(IMAGE)
 
 CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
 
+CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
+
+TRAIN_SAMPLER = oversampler(TRAINING_DATA, CLASS_WEIGHTS)
+TESTING_SAMPLER = oversampler(TESTING_DATA, CLASS_WEIGHTS)
 
 print(f"\nClasses are:\n{CLASSES}\n")
 
 BATCH_SIZE = 16
 
-TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
-TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
+# TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
+# TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-# DEVICE = (
-#     torch.accelerator.current_accelerator().type
-#     if torch.accelerator.is_available()
-#     else "cpu"
-# )
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=TRAIN_SAMPLER)
+TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, sampler=TESTING_SAMPLER)
 
 print("Device: ", DEVICE)
 
@@ -78,7 +81,6 @@ for param in MODEL.parameters():
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
-CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
 
 MODEL_PATH = "models/model_3.pth"
 
@@ -216,7 +218,8 @@ def main():
         model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
+    # loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
+    loss_fn = nn.CrossEntropyLoss()  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)

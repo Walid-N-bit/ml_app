@@ -7,6 +7,8 @@ from PIL import Image
 import re
 import numpy as np
 import torch
+from torch.utils.data import WeightedRandomSampler
+
 
 # def get_dirs(folder: str) -> list:
 #     """
@@ -246,13 +248,45 @@ def data_summary(data_path: str) -> dict:
     return stats
 
 
-def get_class_weights(data_path: str):
+def get_class_weights(data_path: str) -> torch.Tensor:
     data = pd.read_csv(data_path)
     _, counts = np.unique(data["class_name"], return_counts=True)
     class_counts = torch.tensor(counts)
     total_samples = class_counts.sum()
     class_weights = total_samples / (class_counts * len(class_counts))
     return class_weights / class_weights.sum()
+
+
+def oversampler(dataset, weights: torch.Tensor):
+    sample_weights = [0] * len(dataset)
+    for idx, (_, label) in enumerate(dataset):
+        class_weight = weights[label]
+        sample_weights[idx] = class_weight
+    sampler = WeightedRandomSampler(
+        sample_weights, num_samples=len(sample_weights), replacement=True
+    )
+    return sampler
+
+
+def find_duplicates(data_path: str):
+
+    from itertools import combinations
+    from datetime import datetime
+
+    all_dirs = pd.read_csv(data_path)["path"]
+    duplicates = []
+    poss_pairs = list(combinations(all_dirs, 2))
+    print(all_dirs.head(5))
+    print(poss_pairs[:3])
+    print("size: ", len(all_dirs))
+    start_t = datetime.now()
+    for pair in poss_pairs:
+        a = Path(pair[0])
+        b = Path(pair[1])
+        if a.name == b.name:
+            duplicates.append(pair)
+    print("loop duration: ", (datetime.now() - start_t))
+    return duplicates
 
 
 class WheatImgDataset(Dataset):
