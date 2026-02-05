@@ -72,9 +72,9 @@ Net = models.MobileNetV3
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
-# # freeze head for feature extraction
-# for param in MODEL.parameters():
-#     param.requires_grad = False
+# freeze head for feature extraction
+for param in MODEL.parameters():
+    param.requires_grad = False
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
