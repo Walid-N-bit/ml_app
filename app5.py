@@ -82,7 +82,7 @@ TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 arg = "mobilenet"
-if len(sys.argv) > 0:
+if len(sys.argv) > 1:
     arg = sys.argv[1]
 
 def choose_model(arg: str = "mobilenet"):
