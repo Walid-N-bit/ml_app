@@ -96,7 +96,7 @@ def choose_model(arg: str = "mobilenet"):
             return models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT)
 
 
-MODEL = choose_model(sys.argv[1]).to(DEVICE)
+MODEL = choose_model(arg).to(DEVICE)
 
 # freeze head for feature extraction
 for param in MODEL.parameters():
