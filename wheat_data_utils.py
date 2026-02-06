@@ -265,6 +265,7 @@ def oversampler(data_path: str) -> WeightedRandomSampler:
     class_counts = Counter(data["class_name"])  # counter dict
     class_sample_weights = {c: 1.0 / count for c, count in class_counts.items()}
     sample_weights = [0] * len(data)
+
     for idx, item in data.iterrows():
         class_name = item["class_name"]
         class_weight = class_sample_weights.get(class_name)

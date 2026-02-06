@@ -56,8 +56,7 @@ print(f"\nClasses are:\n{CLASSES}\n")
 # CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
 # print("Class weights:\n", list(CLASS_WEIGHTS))
 
-TRAIN_SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
-TESTING_SAMPLER = oversampler(data_path="compressed_images_wheat/test.csv")
+SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
 
 BATCH_SIZE = 16
@@ -65,8 +64,8 @@ BATCH_SIZE = 16
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=TRAIN_SAMPLER)
-TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, sampler=TESTING_SAMPLER)
+TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
+TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 
 Net = models.MobileNetV3
@@ -81,13 +80,16 @@ MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to
 # freeze head for feature extraction
 for param in MODEL.parameters():
     param.requires_grad = False
+    if param == MODEL.classifier:
+        param.requires_grad = True
+
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 30
+EPOCHS = 10
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
