@@ -2,10 +2,11 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from torchvision.io import decode_image
 import pandas as pd
+import numpy as np
+import re
+import matplotlib.pyplot as plt
 import glob
 from PIL import Image
-import re
-import numpy as np
 import torch
 from torch.utils.data import WeightedRandomSampler
 
@@ -295,6 +296,7 @@ def find_duplicates(data_path: str):
             duplicates.append(pair)
     print("loop duration: ", (datetime.now() - start_t))
     return duplicates
+
 
 
 class WheatImgDataset(Dataset):

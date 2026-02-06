@@ -15,15 +15,29 @@ from wheat_data_utils import WheatImgDataset, get_class_weights, oversampler
 from torchinfo import summary
 
 from datetime import datetime
+import sys
 from tempfile import TemporaryDirectory
 
+
+ACC = []
+AVG_LOSS = []
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device: ", DEVICE)
 
+AUGS = (
+    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+    transforms.RandomHorizontalFlip(p=0.3),
+    transforms.RandomVerticalFlip(p=0.3),
+    transforms.RandomGrayscale(p=0.3),
+    transforms.RandomAutocontrast(p=0.3),
+    transforms.RandomAdjustSharpness(p=0.3),
+)
+
 # imagenet images are 224x224 so we resize our custom data to 224
 TRANSFORM = transforms.Compose(
     [
+        *AUGS,
         transforms.Resize(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -68,14 +82,18 @@ TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 
-Net = models.MobileNetV3
+def choose_model(arg: str = "mobilenet"):
+    arg = arg.lower()
+    match arg:
+        case "cnn":
+            return CNN(
+                in_channels=3, out_channels=3, kernel_size=5, out_features=len(CLASSES)
+            )
+        case "mobilenet":
+            return models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT)
 
-# MODEL = NeuralNetwork(input_size=H * W, output_size=len(CLASSES)).to(DEVICE)
-# MODEL = CNN(in_channels=1, out_channels=3, kernel_size=5, out_features=len(CLASSES)).to(
-#     DEVICE
-# )
 
-MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
+MODEL = choose_model(sys.argv[1]).to(DEVICE)
 
 # freeze head for feature extraction
 for param in MODEL.parameters():
@@ -89,12 +107,12 @@ MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 MODEL_PATH = "models/model_3.pth"
 
-EPOCHS = 10
+EPOCHS = 50
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
 
-def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
+def train(dataloader: DataLoader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
     val_loss = []
@@ -120,7 +138,7 @@ def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
     return val_loss
 
 
-def test(dataloader, model: Net, loss_fn):
+def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
@@ -133,12 +151,16 @@ def test(dataloader, model: Net, loss_fn):
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
+
+    ACC.append(round(100 * correct, ndigits=2))
+    AVG_LOSS.append(round(test_loss, ndigits=5))
+
     print(
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
 
 
-def evaluate_model(model: Net, test_data, device, classes: list):
+def evaluate_model(model, test_data, device, classes: list):
     """
     evaluate model accuracy against a list of classes
 
@@ -163,10 +185,10 @@ def evaluate_model(model: Net, test_data, device, classes: list):
             predicted, actual = classes[pred[0].argmax(0)], classes[label]
             preds_images.append((image, predicted))
             print(f'Predicted: "{predicted}", Actual: "{actual}"')
-    show_predictions(preds_images)
+    save_predictions(preds_images)
 
 
-def eval2(testloader, model: Net, classes):
+def eval2(testloader, model, classes):
     correct = 0
     total = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
@@ -250,6 +272,15 @@ def main():
     classes_list = list(CLASSES.values())
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
+
+    df = pd.DataFrame(
+        {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
+    )
+    csv_name = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
+    df.to_csv(f"output_data/{csv_name}.csv")
+    plot_data(data=df, x_col="Epoch", y_col="Accuracy")
+    plot_data(data=df, x_col="Epoch", y_col="Average_loss", color="r", ls="--")
+
     print("End of Evaluation!")
     t_eva = datetime.now() - t_end
     t_total = datetime.now() - t_start

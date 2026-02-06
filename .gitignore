@@ -2,9 +2,11 @@ __pycache__/
 *venv*/
 notebook.ipynb
 models/
-data/
+*data/
 pokemon-images-and-types/
 tester.py
 compressed_images_wheat/
 compressed_images_wheat*
 *.png
+get_images.sh
+*worker.sh
