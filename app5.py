@@ -31,7 +31,7 @@ AUGS = (
     transforms.RandomVerticalFlip(p=0.3),
     transforms.RandomGrayscale(p=0.3),
     transforms.RandomAutocontrast(p=0.3),
-    transforms.RandomAdjustSharpness(p=0.3),
+    transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
 )
 
 # imagenet images are 224x224 so we resize our custom data to 224
