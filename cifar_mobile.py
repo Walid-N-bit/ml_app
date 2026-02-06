@@ -45,19 +45,19 @@ TRANSFORM = transforms.Compose(
 )
 
 
-# TRAINING_DATA = datasets.CIFAR10(
-#     root="data", train=True, download=False, transform=TRANSFORM
-# )
-# TESTING_DATA = datasets.CIFAR10(
-#     root="data", train=False, download=False, transform=TRANSFORM
-# )
+TRAINING_DATA = datasets.CIFAR10(
+    root="data", train=True, download=True, transform=TRANSFORM
+)
+TESTING_DATA = datasets.CIFAR10(
+    root="data", train=False, download=True, transform=TRANSFORM
+)
 
-TRAINING_DATA = WheatImgDataset(
-    data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
-)
-TESTING_DATA = WheatImgDataset(
-    data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
-)
+# TRAINING_DATA = WheatImgDataset(
+#     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
+# )
+# TESTING_DATA = WheatImgDataset(
+#     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
+# )
 
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)
@@ -70,7 +70,7 @@ print(f"\nClasses are:\n{CLASSES}\n")
 # CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
 # print("Class weights:\n", list(CLASS_WEIGHTS))
 
-SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
+# SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
 
 BATCH_SIZE = 64
@@ -78,7 +78,7 @@ BATCH_SIZE = 64
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
+TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 arg = "mobilenet"
@@ -109,7 +109,7 @@ MODEL = choose_model(arg).to(DEVICE)
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 
-MODEL_PATH = "models/model_3.pth"
+MODEL_PATH = "models/cifar_mobilenet.pth"
 
 EPOCHS = 20
 
