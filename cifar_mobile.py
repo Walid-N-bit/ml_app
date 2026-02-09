@@ -73,7 +73,7 @@ print(f"\nClasses are:\n{CLASSES}\n")
 # SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -81,23 +81,8 @@ BATCH_SIZE = 64
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-arg = "mobilenet"
-if len(sys.argv) > 1:
-    arg = sys.argv[1]
 
-
-def choose_model(arg: str = "mobilenet"):
-    arg = arg.lower()
-    match arg:
-        case "cnn":
-            return CNN(
-                in_channels=3, out_channels=3, kernel_size=5, out_features=len(CLASSES)
-            )
-        case "mobilenet":
-            return models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT)
-
-
-MODEL = choose_model(arg).to(DEVICE)
+MODEL =models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
 # # freeze head for feature extraction
 # for param in MODEL.parameters():
@@ -259,24 +244,25 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
-    # for t in range(EPOCHS):
-    #     print(f"Epoch {t+1}\n-------------------------------")
-    #     val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
-    #     test(TEST_LOADER, model, loss_fn)
-    #     # scheduler.step()
-    #     scheduler.step(val_loss)
+    for t in range(EPOCHS):
+        print(f"Epoch {t+1}\n-------------------------------")
+        print(f"Learning rate = {scheduler.get_last_lr()}")
+        val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+        test(TEST_LOADER, model, loss_fn)
+        # scheduler.step()
+        scheduler.step(val_loss)
 
-    # print("\nEnd of Training!")
+    print("\nEnd of Training!")
     t_end = datetime.now() - t_start
-    # print("##########################\n")
-    # print(f"# Training time: {t_end} #\n")
-    # print("##########################\n")
-    # print("Evaluation...")
-    # save_model(model, path=MODEL_PATH)
+    print("##########################\n")
+    print(f"# Training time: {t_end} #\n")
+    print("##########################\n")
+    print("Evaluation...")
+    save_model(model, path=MODEL_PATH)
     classes_list = list(CLASSES)
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
-
+    
     df = pd.DataFrame(
         {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
     )
