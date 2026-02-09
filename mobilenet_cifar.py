@@ -273,9 +273,16 @@ def main():
         {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
     )
     csv_name = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
-    df.to_csv(f"output_data/{csv_name}.csv")
-    plot_data(data=df, x_col="Epoch", y_col="Accuracy")
-    plot_data(data=df, x_col="Epoch", y_col="Average_loss", color="r", ls="--")
+    df.to_csv(f"output_data/cifar/{csv_name}.csv")
+    plot_data(out_path="output_data/cifar", data=df, x_col="Epoch", y_col="Accuracy")
+    plot_data(
+        out_path="output_data/cifar",
+        data=df,
+        x_col="Epoch",
+        y_col="Average_loss",
+        color="r",
+        ls="--",
+    )
 
     print("End of Evaluation!")
     t_eva = datetime.now() - t_end
