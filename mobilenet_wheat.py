@@ -293,11 +293,13 @@ def main():
     df = pd.DataFrame(
         {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
     )
+    data_folder = f"output_data/wheat_b:{BATCH_SIZE}/"
     csv_name = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
-    df.to_csv(f"output_data/wheat/{csv_name}.csv")
-    plot_data(out_path="output_data/wheat", data=df, x_col="Epoch", y_col="Accuracy")
+    os.makedirs(os.path.dirname(data_folder), exist_ok=True)
+    df.to_csv(f"{data_folder}{csv_name}.csv")
+    plot_data(out_path=data_folder, data=df, x_col="Epoch", y_col="Accuracy")
     plot_data(
-        out_path="output_data/wheat",
+        out_path=data_folder,
         data=df,
         x_col="Epoch",
         y_col="Average_loss",

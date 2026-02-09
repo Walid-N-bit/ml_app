@@ -27,8 +27,8 @@ print("Device: ", DEVICE)
 
 AUGS = (
     # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
-    transforms.RandomHorizontalFlip(p=0.3),
-    transforms.RandomVerticalFlip(p=0.3),
+    # transforms.RandomHorizontalFlip(p=0.3),
+    # transforms.RandomVerticalFlip(p=0.3),
     # transforms.RandomAutocontrast(p=0.3),
     # transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
 )
@@ -44,19 +44,19 @@ TRANSFORM = transforms.Compose(
 )
 
 
-TRAINING_DATA = datasets.CIFAR10(
-    root="data", train=True, download=True, transform=TRANSFORM
-)
-TESTING_DATA = datasets.CIFAR10(
-    root="data", train=False, download=True, transform=TRANSFORM
-)
+# TRAINING_DATA = datasets.CIFAR10(
+#     root="data", train=True, download=False, transform=TRANSFORM
+# )
+# TESTING_DATA = datasets.CIFAR10(
+#     root="data", train=False, download=False, transform=TRANSFORM
+# )
 
-# TRAINING_DATA = WheatImgDataset(
-#     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
-# )
-# TESTING_DATA = WheatImgDataset(
-#     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
-# )
+TRAINING_DATA = WheatImgDataset(
+    data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
+)
+TESTING_DATA = WheatImgDataset(
+    data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
+)
 
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)
@@ -66,6 +66,11 @@ print(f"Images shape: {C, H, W}")
 CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
 print(f"\nClasses are:\n{CLASSES}\n")
 
+# CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
+# print("Class weights:\n", list(CLASS_WEIGHTS))
+
+SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
+
 
 EPOCHS = 50
 BATCH_SIZE = 64
@@ -74,6 +79,7 @@ if len(args) > 1:
     EPOCHS = int(args[1])
 if len(args) > 2:
     BATCH_SIZE = int(args[2])
+
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -87,7 +93,7 @@ TRAIN_LOADER = DataLoader(
     num_workers=4,
     pin_memory=pin_mem,
     batch_size=BATCH_SIZE,
-    shuffle=True,
+    sampler=SAMPLER,
 )
 TEST_LOADER = DataLoader(
     TESTING_DATA, num_workers=4, pin_memory=pin_mem, batch_size=BATCH_SIZE, shuffle=True
@@ -96,9 +102,9 @@ TEST_LOADER = DataLoader(
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
-# freeze head for feature extraction
-for param in MODEL.parameters():
-    param.requires_grad = False
+# # freeze head for feature extraction
+# for param in MODEL.parameters():
+#     param.requires_grad = False
 
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
@@ -231,13 +237,14 @@ def eval2(testloader, model, classes):
 
 def main():
 
+    MODEL_PATH = "models/mobile_wheat.pth"
     # requirements()
     t_start = datetime.now()
 
     model = MODEL
-    # model_exists = file_exists(MODEL_PATH)
-    # if model_exists:
-    #     model = load_model(MODEL_PATH, model)
+    model_exists = file_exists(MODEL_PATH)
+    if model_exists:
+        model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
     # loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
@@ -246,21 +253,22 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
-    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
+    # optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
+    # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
-    # # for unfrozen backbone
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         {"params": model.features.parameters(), "lr": 1e-5},
-    #         {"params": model.classifier.parameters(), "lr": 1e-3},
-    #     ]
-    # )
+    # for unfrozen backbone
+    optimizer = torch.optim.Adam(
+        [
+            {"params": model.features.parameters(), "lr": 1e-5},
+            {"params": model.classifier.parameters(), "lr": 1e-3},
+        ]
+    )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
-        # print(f"Learning rate = {scheduler.get_last_lr()}")
         val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
         # scheduler.step()
@@ -274,19 +282,19 @@ def main():
     print("Evaluation...")
 
     MODEL_PATH = (
-        f"models/cifar_mobilenet_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
+        f"models/wheat_mobilenet_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
     )
     save_model(model, path=MODEL_PATH)
 
-    classes_list = list(CLASSES)
+    classes_list = list(CLASSES.values())
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
 
     df = pd.DataFrame(
         {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
     )
+    data_folder = f"output_data/wheat_unfrozen_b:{BATCH_SIZE}/"
     csv_name = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
-    data_folder = f"output_data/cifar_b:{BATCH_SIZE}/"
     os.makedirs(os.path.dirname(data_folder), exist_ok=True)
     df.to_csv(f"{data_folder}{csv_name}.csv")
     plot_data(out_path=data_folder, data=df, x_col="Epoch", y_col="Accuracy")
