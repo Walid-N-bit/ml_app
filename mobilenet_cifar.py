@@ -67,13 +67,8 @@ print(f"Images shape: {C, H, W}")
 CLASSES = TRAINING_DATA.classes  # dict of labels to class_names
 print(f"\nClasses are:\n{CLASSES}\n")
 
-# CLASS_WEIGHTS = get_class_weights("compressed_images_wheat/train.csv").to(DEVICE)
-# print("Class weights:\n", list(CLASS_WEIGHTS))
 
-# SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
-
-
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -84,17 +79,13 @@ TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
-# # freeze head for feature extraction
-# for param in MODEL.parameters():
-#     param.requires_grad = False
-#     if param == MODEL.classifier:
-#         param.requires_grad = True
+# freeze head for feature extraction
+for param in MODEL.parameters():
+    param.requires_grad = False
 
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
-
-MODEL_PATH = "models/cifar_mobilenet.pth"
 
 EPOCHS = 20
 
@@ -241,6 +232,12 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
     optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
+    # optimizer = torch.optim.Adam(
+    #     [
+    #         {"params": model.classifier.parameters(), "lr": 1e-5},
+    #         {"params": model.classifier.parameters(), "lr": 1e-3},
+    #     ]
+    # )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
@@ -258,9 +255,12 @@ def main():
     print(f"# Training time: {t_end} #\n")
     print("##########################\n")
     print("Evaluation...")
-    save_model(
-        model, path=f"{MODEL_PATH}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+
+    MODEL_PATH = (
+        f"models/cifar_mobilenet_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
     )
+    save_model(model, path=MODEL_PATH)
+
     classes_list = list(CLASSES)
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)

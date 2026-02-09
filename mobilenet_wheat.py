@@ -81,34 +81,16 @@ BATCH_SIZE = 16
 TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-arg = "mobilenet"
-if len(sys.argv) > 1:
-    arg = sys.argv[1]
 
-def choose_model(arg: str = "mobilenet"):
-    arg = arg.lower()
-    match arg:
-        case "cnn":
-            return CNN(
-                in_channels=3, out_channels=3, kernel_size=5, out_features=len(CLASSES)
-            )
-        case "mobilenet":
-            return models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT)
-
-
-MODEL = choose_model(arg).to(DEVICE)
+MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
 # freeze head for feature extraction
 for param in MODEL.parameters():
     param.requires_grad = False
-    if param == MODEL.classifier:
-        param.requires_grad = True
 
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
-
-MODEL_PATH = "models/model_3.pth"
 
 EPOCHS = 50
 
@@ -239,6 +221,7 @@ def eval2(testloader, model, classes):
 
 def main():
 
+    MODEL_PATH = "models/mobile_wheat.pth"
     # requirements()
     t_start = datetime.now()
 
@@ -271,7 +254,12 @@ def main():
     print(f"# Training time: {t_end} #\n")
     print("##########################\n")
     print("Evaluation...")
+
+    MODEL_PATH = (
+        f"models/wheat_mobilenet_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
+    )
     save_model(model, path=MODEL_PATH)
+
     classes_list = list(CLASSES.values())
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
