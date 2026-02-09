@@ -80,12 +80,24 @@ if len(args) > 1:
 if len(args) > 2:
     BATCH_SIZE = args[2]
 
-    
+
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
-TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, sampler=SAMPLER)
-TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
+pin_mem = False
+if DEVICE == "cuda":
+    pin_mem = True
+
+TRAIN_LOADER = DataLoader(
+    TRAINING_DATA,
+    num_workers=4,
+    pin_memory=pin_mem,
+    batch_size=BATCH_SIZE,
+    sampler=SAMPLER,
+)
+TEST_LOADER = DataLoader(
+    TESTING_DATA, num_workers=4, pin_memory=pin_mem, batch_size=BATCH_SIZE, shuffle=True
+)
 
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
