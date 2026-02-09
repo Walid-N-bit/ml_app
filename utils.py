@@ -138,7 +138,7 @@ def plot_data(
     y = data[y_col]
     plt.figure(figsize=(16, 6))
     plt.xlabel(x_col)
-    plt.xticks(x)
+    # plt.xticks(x)
     plt.ylabel(y_col)
     plt.grid()
     plt.plot(x, y, color=color, ls=ls)
