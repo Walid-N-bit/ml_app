@@ -111,7 +111,7 @@ def save_predictions(data: list):
 
     for i, (img, label) in enumerate(data):
         img = prep_image(img)
-        axes[i].imshow(img.astype("uint8"))
+        axes[i].imshow(img.detach().cpu().numpy().astype("uint8"))
         axes[i].set_title(str(label))
         axes[i].axis("off")
 
