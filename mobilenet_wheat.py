@@ -53,10 +53,10 @@ TRANSFORM = transforms.Compose(
 
 TRAINING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
-)
+).to(DEVICE)
 TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
-)
+).to(DEVICE)
 
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)

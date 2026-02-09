@@ -46,10 +46,10 @@ TRANSFORM = transforms.Compose(
 
 TRAINING_DATA = datasets.CIFAR10(
     root="data", train=True, download=True, transform=TRANSFORM
-)
+).to(DEVICE)
 TESTING_DATA = datasets.CIFAR10(
     root="data", train=False, download=True, transform=TRANSFORM
-)
+).to(DEVICE)
 
 # TRAINING_DATA = WheatImgDataset(
 #     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
