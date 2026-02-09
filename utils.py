@@ -127,6 +127,7 @@ def save_predictions(data: list):
 def plot_data(
     data: pd.DataFrame, x_col: str, y_col: str, color: str = "b", ls: str = "-"
 ):
+    time = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
 
     x = data[x_col]
     y = data[y_col]
@@ -139,4 +140,4 @@ def plot_data(
     plt.title(y_col)
 
     plt.tight_layout()
-    plt.savefig(f"output_data/{y_col}_vs_{x_col}.png")
+    plt.savefig(f"output_data/{y_col}_vs_{x_col}_{time}.png")

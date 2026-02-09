@@ -73,7 +73,7 @@ print(f"\nClasses are:\n{CLASSES}\n")
 SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
 
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -93,6 +93,10 @@ MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 
 EPOCHS = 50
+
+args = sys.argv
+if len(args) > 1:
+    EPOCHS = args[1]
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -241,12 +245,22 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
+    # # for unfrozen backbone
+    # optimizer = torch.optim.Adam(
+    #     [
+    #         {"params": model.features.parameters(), "lr": 1e-5},
+    #         {"params": model.classifier.parameters(), "lr": 1e-3},
+    #     ]
+    # )
+    # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
+
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
         val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
         # scheduler.step()
-        scheduler.step(val_loss)
+        # scheduler.step(val_loss)
 
     print("\nEnd of Training!")
     t_end = datetime.now() - t_start

@@ -87,7 +87,10 @@ for param in MODEL.parameters():
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
 
-EPOCHS = 20
+EPOCHS = 50
+args = sys.argv
+if len(args) > 1:
+    EPOCHS = args[1]
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
