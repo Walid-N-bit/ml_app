@@ -255,7 +255,7 @@ def main():
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
+    # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
     # for unfrozen backbone
     optimizer = torch.optim.Adam(
