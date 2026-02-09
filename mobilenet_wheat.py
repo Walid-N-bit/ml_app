@@ -53,10 +53,10 @@ TRANSFORM = transforms.Compose(
 
 TRAINING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
-).to(DEVICE)
+)
 TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
-).to(DEVICE)
+)
 
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)
@@ -80,7 +80,7 @@ if len(args) > 1:
 if len(args) > 2:
     BATCH_SIZE = args[2]
 
-
+    
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
