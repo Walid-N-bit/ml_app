@@ -298,12 +298,11 @@ def find_duplicates(data_path: str):
     return duplicates
 
 
-
 class WheatImgDataset(Dataset):
 
     def __init__(self, data_file, transform=None, target_transform=None):
         self.img_labels = img_labels(data_file)
-        self.data_dir = pd.read_csv(data_file)
+        self.data_dir = pd.read_csv(data_file).to_numpy()
         self.transform = transform
         self.target_transform = target_transform
         self.classes = labels_map_from_csv(data_file)
@@ -312,7 +311,7 @@ class WheatImgDataset(Dataset):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
-        img_path = self.data_dir.loc[idx, "path"]
+        img_path = self.data_dir[idx, 3]
 
         # using PIL because torchvision.transforms expect it
         image = Image.open(img_path).convert("RGB")
