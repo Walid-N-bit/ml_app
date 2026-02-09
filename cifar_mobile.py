@@ -273,7 +273,7 @@ def main():
     print("##########################\n")
     print("Evaluation...")
     save_model(model, path=MODEL_PATH)
-    classes_list = list(CLASSES.values())
+    classes_list = list(CLASSES)
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
 
