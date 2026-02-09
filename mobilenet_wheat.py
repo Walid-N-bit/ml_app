@@ -27,8 +27,8 @@ print("Device: ", DEVICE)
 
 AUGS = (
     # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
-    transforms.RandomHorizontalFlip(p=0.3),
-    transforms.RandomVerticalFlip(p=0.3),
+    # transforms.RandomHorizontalFlip(p=0.3),
+    # transforms.RandomVerticalFlip(p=0.3),
     # transforms.RandomAutocontrast(p=0.3),
     # transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
 )
@@ -72,7 +72,14 @@ print(f"\nClasses are:\n{CLASSES}\n")
 SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
 
-BATCH_SIZE = 32
+EPOCHS = 50
+BATCH_SIZE = 64
+args = sys.argv
+if len(args) > 1:
+    EPOCHS = args[1]
+if len(args) > 2:
+    BATCH_SIZE = args[2]
+
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
@@ -90,12 +97,6 @@ for param in MODEL.parameters():
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 
-
-EPOCHS = 50
-
-args = sys.argv
-if len(args) > 1:
-    EPOCHS = args[1]
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
 
@@ -244,7 +245,7 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
-    # # for unfrozen backbone
+    # for unfrozen backbone
     # optimizer = torch.optim.Adam(
     #     [
     #         {"params": model.features.parameters(), "lr": 1e-5},
