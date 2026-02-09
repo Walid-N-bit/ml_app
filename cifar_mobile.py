@@ -259,20 +259,20 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
-    for t in range(EPOCHS):
-        print(f"Epoch {t+1}\n-------------------------------")
-        val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
-        test(TEST_LOADER, model, loss_fn)
-        # scheduler.step()
-        scheduler.step(val_loss)
+    # for t in range(EPOCHS):
+    #     print(f"Epoch {t+1}\n-------------------------------")
+    #     val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+    #     test(TEST_LOADER, model, loss_fn)
+    #     # scheduler.step()
+    #     scheduler.step(val_loss)
 
-    print("\nEnd of Training!")
+    # print("\nEnd of Training!")
     t_end = datetime.now() - t_start
-    print("##########################\n")
-    print(f"# Training time: {t_end} #\n")
-    print("##########################\n")
-    print("Evaluation...")
-    save_model(model, path=MODEL_PATH)
+    # print("##########################\n")
+    # print(f"# Training time: {t_end} #\n")
+    # print("##########################\n")
+    # print("Evaluation...")
+    # save_model(model, path=MODEL_PATH)
     classes_list = list(CLASSES)
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
