@@ -82,7 +82,7 @@ TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 
 
-MODEL =models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
+MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
 # # freeze head for feature extraction
 # for param in MODEL.parameters():
@@ -258,11 +258,13 @@ def main():
     print(f"# Training time: {t_end} #\n")
     print("##########################\n")
     print("Evaluation...")
-    save_model(model, path=MODEL_PATH)
+    save_model(
+        model, path=f"{MODEL_PATH}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+    )
     classes_list = list(CLASSES)
     evaluate_model(model, TESTING_DATA, DEVICE, classes_list)
     eval2(TEST_LOADER, model, classes_list)
-    
+
     df = pd.DataFrame(
         {"Epoch": range(1, EPOCHS + 1), "Accuracy": ACC, "Average_loss": AVG_LOSS}
     )
