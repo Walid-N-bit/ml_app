@@ -220,9 +220,9 @@ def main():
     t_start = datetime.now()
 
     model = MODEL
-    model_exists = file_exists(MODEL_PATH)
-    if model_exists:
-        model = load_model(MODEL_PATH, model)
+    # model_exists = file_exists(MODEL_PATH)
+    # if model_exists:
+    #     model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
     # loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
