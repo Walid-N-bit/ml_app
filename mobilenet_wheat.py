@@ -26,12 +26,11 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device: ", DEVICE)
 
 AUGS = (
-    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+    # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
     transforms.RandomHorizontalFlip(p=0.3),
     transforms.RandomVerticalFlip(p=0.3),
-    transforms.RandomGrayscale(p=0.3),
-    transforms.RandomAutocontrast(p=0.3),
-    transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
+    # transforms.RandomAutocontrast(p=0.3),
+    # transforms.RandomAdjustSharpness(sharpness_factor=0.5, p=0.3),
 )
 
 # imagenet images are 224x224 so we resize our custom data to 224
