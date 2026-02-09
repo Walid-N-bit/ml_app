@@ -232,22 +232,24 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
     optimizer = torch.optim.Adam(model.classifier.parameters(), lr=0.0001)
+
+    # # for unfrozen backbone
     # optimizer = torch.optim.Adam(
     #     [
-    #         {"params": model.classifier.parameters(), "lr": 1e-5},
+    #         {"params": model.features.parameters(), "lr": 1e-5},
     #         {"params": model.classifier.parameters(), "lr": 1e-3},
     #     ]
     # )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
+    # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
     for t in range(EPOCHS):
         print(f"Epoch {t+1}\n-------------------------------")
-        print(f"Learning rate = {scheduler.get_last_lr()}")
+        # print(f"Learning rate = {scheduler.get_last_lr()}")
         val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
         test(TEST_LOADER, model, loss_fn)
         # scheduler.step()
-        scheduler.step(val_loss)
+        # scheduler.step(val_loss)
 
     print("\nEnd of Training!")
     t_end = datetime.now() - t_start
