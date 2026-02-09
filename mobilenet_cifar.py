@@ -71,9 +71,9 @@ EPOCHS = 50
 BATCH_SIZE = 64
 args = sys.argv
 if len(args) > 1:
-    EPOCHS = args[1]
+    EPOCHS = int(args[1])
 if len(args) > 2:
-    BATCH_SIZE = args[2]
+    BATCH_SIZE = int(args[2])
 
 # TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
 # TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
