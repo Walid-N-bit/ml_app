@@ -149,7 +149,7 @@ def main():
         print("\nEnd of Training!\n")
         TOTAL_TIME = time.perf_counter() - t0
         print("###############################\n")
-        print(f"# Training time: {TOTAL_TIME} #\n")
+        print(f"# Training time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n")
         print("###############################\n")
 
     df = pd.DataFrame(
@@ -177,9 +177,13 @@ def main():
     eval_time = time.perf_counter() - t1
     TOTAL_TIME += eval_time
     print("##########################\n")
-    print(f"# Evaluation time: {eval_time} #\n")
+    print(
+        f"# Evaluation time: {time.strftime("%H:%M:%S", time.gmtime(eval_time))} #\n"
+    )
     print("##########################\n")
-    print(f"# Total elapsed time: {TOTAL_TIME} #\n")
+    print(
+        f"# Total elapsed time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
+    )
     print("##########################\n")
 
 
