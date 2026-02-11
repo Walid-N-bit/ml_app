@@ -34,7 +34,8 @@ def file_exists(path: str):
     :param path: path to file
     :type path: str
     """
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if path:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
     file_exists = os.path.exists(path)
     return file_exists
 

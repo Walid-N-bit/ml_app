@@ -107,8 +107,8 @@ def main():
     t0 = time.perf_counter()
 
     model = MODEL
-    model_exists = file_exists(MODEL_PATH)
-    if model_exists:
+    
+    if MODEL_PATH:
         model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
