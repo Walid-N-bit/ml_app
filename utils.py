@@ -163,5 +163,8 @@ def cmd_args():
     parser.add_argument("--train", "-tr", action="store_true", help="")
     # parser.add_argument("--test", "-ts", action="store_true", help="")
     parser.add_argument("--eval", "-ev", action="store_true", help="")
+    parser.add_argument(
+        "--scheduler", "-s", action="store_true", help="Enable a schedular"
+    )
 
     return parser.parse_args()

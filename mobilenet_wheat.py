@@ -34,6 +34,7 @@ MODEL_PATH = args.load
 IS_TRAIN = args.train
 # IS_TEST = args.test
 IS_EVAL = args.eval
+IS_SCHEDUL = args.scheduler
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -107,7 +108,7 @@ def main():
     t0 = time.perf_counter()
 
     model = MODEL
-    
+
     if MODEL_PATH:
         model = load_model(MODEL_PATH, model)
 
@@ -143,7 +144,8 @@ def main():
             ACC.append(acc)
             AVG_LOSS.append(loss)
             # scheduler.step()
-            # scheduler.step(val_loss)
+            if IS_SCHEDUL:
+                scheduler.step(val_loss)
         print("\nEnd of Training!\n")
         TOTAL_TIME = time.perf_counter() - t0
         print("###############################\n")
