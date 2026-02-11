@@ -119,7 +119,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
-    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR[1])
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
