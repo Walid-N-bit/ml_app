@@ -28,7 +28,7 @@ TOTAL_TIME = 0
 args = cmd_args()
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch
-LR = args.lr
+LR = args.lr   # [backbone_lr, classifier_lr]
 FREEZE = args.freeze
 MODEL_PATH = args.load
 IS_TRAIN = args.train
@@ -120,14 +120,14 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
-    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR[1])
 
     # for unfrozen backbone
     if not FREEZE:
         optimizer = torch.optim.Adam(
             [
-                {"params": model.features.parameters(), "lr": 1e-5},
-                {"params": model.classifier.parameters(), "lr": LR},
+                {"params": model.features.parameters(), "lr": LR[0]},
+                {"params": model.classifier.parameters(), "lr": LR[1]},
             ]
         )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
@@ -149,21 +149,25 @@ def main():
         print("\nEnd of Training!\n")
         TOTAL_TIME = time.perf_counter() - t0
         print("###############################\n")
-        print(f"# Training time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n")
+        print(
+            f"# Training time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
+        )
         print("###############################\n")
 
-    df = pd.DataFrame(
-        {
-            "Epoch": range(1, EPOCHS + 1),
-            "Accuracy": ACC,
-            "Average_loss": AVG_LOSS,
-            "Duration": DURATIONS,
-        }
-    )
-    TAG = f"{sys.argv[0].strip(".py")}{'_frozen' if FREEZE else '_unfrozen'}"
-    save_csv(tag=TAG, batch_size=BATCH_SIZE, data=df)
-    save_path = f"models/{TAG}_batches:{BATCH_SIZE}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
-    save_model(model, path=save_path)
+        df = pd.DataFrame(
+            {
+                "Epoch": range(1, EPOCHS + 1),
+                "Accuracy": ACC,
+                "Average_loss": AVG_LOSS,
+                "Duration": DURATIONS,
+            }
+        )
+
+        file_name = sys.argv[0].strip(".py")
+        TAG = f"{file_name}{'_frozen' if FREEZE else '_unfrozen'}_lr:{LR}"
+        save_csv(tag=TAG, batch_size=BATCH_SIZE, data=df)
+        save_path = f"models/{TAG}_batch-size:{BATCH_SIZE}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
+        save_model(model, path=save_path)
 
     if IS_EVAL:
         print("Evaluation...")
@@ -173,18 +177,18 @@ def main():
         eval_general(model, TESTING_DATA, DEVICE, classes_list)
         eval_per_class(TEST_LOADER, model, classes_list)
 
-    print("End of Evaluation!")
-    eval_time = time.perf_counter() - t1
-    TOTAL_TIME += eval_time
-    print("##########################\n")
-    print(
-        f"# Evaluation time: {time.strftime("%H:%M:%S", time.gmtime(eval_time))} #\n"
-    )
-    print("##########################\n")
-    print(
-        f"# Total elapsed time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
-    )
-    print("##########################\n")
+        print("End of Evaluation!")
+        eval_time = time.perf_counter() - t1
+        TOTAL_TIME += eval_time
+        print("##########################\n")
+        print(
+            f"# Evaluation time: {time.strftime("%H:%M:%S", time.gmtime(eval_time))} #\n"
+        )
+        print("##########################\n")
+        print(
+            f"# Total elapsed time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
+        )
+        print("##########################\n")
 
 
 if __name__ == "__main__":

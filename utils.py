@@ -97,72 +97,36 @@ def prep_image(image: torch.Tensor):
     return image
 
 
-# def save_img(image, label):
-#     image = prep_image(image)
-#     plt.figure()
-#     plt.imshow(image)
-#     plt.title(label)
-#     plt.axis("off")
-#     plt.savefig("output.png")
-#     plt.close()
-
-
-def save_predictions(data: list):
-
-    fig, axes = plt.subplots(2, 3, figsize=(3 * 3, 2 * 3))
-    axes = axes.flatten()
-
-    for i, (img, label) in enumerate(data):
-        img = prep_image(img)
-        axes[i].imshow(img.detach().cpu().numpy().astype("uint8"))
-        axes[i].set_title(str(label))
-        axes[i].axis("off")
-
-    # Hide unused subplots
-    for j in range(i + 1, len(axes)):
-        axes[j].axis("off")
-
-    plt.tight_layout()
-    plt.savefig("img_evaluation.png")
-    plt.close()
-
-
-def plot_data(
-    data: pd.DataFrame,
-    x_col: str,
-    y_col: str,
-    color: str = "b",
-    ls: str = "-",
-    out_path: str = "output_data",
-):
-    time = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
-
-    x = data[x_col]
-    y = data[y_col]
-    plt.figure(figsize=(16, 6))
-    plt.xlabel(x_col)
-    # plt.xticks(x)
-    plt.ylabel(y_col)
-    plt.grid()
-    plt.plot(x, y, color=color, ls=ls)
-    plt.title(y_col)
-
-    plt.tight_layout()
-    plt.savefig(f"{out_path}/{y_col}_vs_{x_col}_{time}.png")
-
-
 def cmd_args():
     parser = argparse.ArgumentParser(
         description="options for training, testing, and evaluating pytorch model"
     )
-    parser.add_argument("--epochs","-e", type=int, default=20, help="")
-    parser.add_argument("--batch","-b", type=int, default=64, help="")
-    parser.add_argument("--lr", "-l", type=float, default=1e-3, help="default learning rate")
-    parser.add_argument("--freeze","-f", action="store_true", help="freeze backbone")
-    parser.add_argument("--load","-ld", type=str, help="")
-    parser.add_argument("--train", "-tr", action="store_true", help="")
+    parser.add_argument(
+        "--epochs", "-e", type=int, default=20, help="Number of epochs. default=20"
+    )
+    parser.add_argument(
+        "--batch", "-b", type=int, default=64, help="Batch size. default = 64"
+    )
+    parser.add_argument(
+        "--lr",
+        "-l",
+        nargs=2,
+        type=float,
+        default=(1e-5, 1e-3),
+        help="Learning rates for model's backbone and classifier. default=(1e-5, 1e-3)",
+    )
+    parser.add_argument(
+        "--freeze",
+        "-f",
+        action="store_true",
+        help="Freeze model backbone parameters during training",
+    )
+    parser.add_argument("--load", "-ld", type=str, help="Load a model from a file")
+    parser.add_argument(
+        "--train", "-tr", action="store_true", help="Perform training + testing"
+    )
     # parser.add_argument("--test", "-ts", action="store_true", help="")
-    parser.add_argument("--eval", "-ev", action="store_true", help="")
+    parser.add_argument("--eval", "-ev", action="store_true", help="Perform evaluation")
     parser.add_argument(
         "--scheduler", "-s", action="store_true", help="Enable a schedular"
     )

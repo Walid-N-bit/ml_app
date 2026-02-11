@@ -140,7 +140,7 @@ def save_csv(
 ):
 
     time = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
-    file_name = f"{tag}_batches:{batch_size}_{time}.csv"
+    file_name = f"{tag}_batch-size:{batch_size}_{time}.csv"
     output_path = f"{Path(data_folder) / tag / file_name}"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     data.to_csv(output_path)
