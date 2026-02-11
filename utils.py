@@ -6,6 +6,8 @@ import torch
 from CustomClasses import NeuralNetwork
 import csv
 from datetime import datetime
+import argparse
+from pathlib import Path
 
 
 def cmd(input: str) -> str:
@@ -146,3 +148,19 @@ def plot_data(
 
     plt.tight_layout()
     plt.savefig(f"{out_path}/{y_col}_vs_{x_col}_{time}.png")
+
+
+def cmd_args():
+    parser = argparse.ArgumentParser(
+        description="options for training, testing, and evaluating pytorch model"
+    )
+    parser.add_argument("--epochs", type=int, default=20, help="")
+    parser.add_argument("--batch", type=int, default=64, help="")
+    parser.add_argument("--lr", type=float, default=1e-3, help="default learning rate")
+    parser.add_argument("--freeze", action="store_true", help="freeze backbone")
+    parser.add_argument("--load", type=str, help="")
+    parser.add_argument("--train", "-tr", action="store_true", help="")
+    # parser.add_argument("--test", "-ts", action="store_true", help="")
+    parser.add_argument("--eval", "-ev", action="store_true", help="")
+
+    return parser.parse_args()

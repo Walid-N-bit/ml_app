@@ -4,6 +4,8 @@ from torchvision.io import decode_image
 import pandas as pd
 import numpy as np
 import re
+import os
+from datetime import datetime
 import matplotlib.pyplot as plt
 import glob
 from PIL import Image
@@ -190,11 +192,10 @@ def img_labels(data_file: str):
     return pd.DataFrame(img_labels)
 
 
-def images_data_csv(
+def imgs_data_to_csv(
     dataset_path: str,
     train_folders: list[str],
     test_folders: list[str],
-    include: str,
 ):
 
     def get_dirs(folders):
@@ -207,7 +208,7 @@ def images_data_csv(
     def clean_dirs(dirs: list[str]):
         new_dirs = []
         for d in dirs:
-            is_included = (include in d) and (".png" in d)
+            is_included = ".png" in d
             if is_included:
                 new_dirs.append(d)
         return new_dirs
@@ -277,25 +278,18 @@ def oversampler(data_path: str) -> WeightedRandomSampler:
     return sampler
 
 
-def find_duplicates(data_path: str):
+def save_csv(
+    tag: str,
+    data: pd.DataFrame,
+    batch_size: int,
+    data_folder: str = "output_data",
+):
 
-    from itertools import combinations
-    from datetime import datetime
-
-    all_dirs = pd.read_csv(data_path)["path"]
-    duplicates = []
-    poss_pairs = list(combinations(all_dirs, 2))
-    print(all_dirs.head(5))
-    print(poss_pairs[:3])
-    print("size: ", len(all_dirs))
-    start_t = datetime.now()
-    for pair in poss_pairs:
-        a = Path(pair[0])
-        b = Path(pair[1])
-        if a.name == b.name:
-            duplicates.append(pair)
-    print("loop duration: ", (datetime.now() - start_t))
-    return duplicates
+    time = datetime.now().strftime("%H:%M:%S-%d.%m.%Y")
+    file_name = f"{tag}_batches:{batch_size}_{time}.csv"
+    output_path = f"{Path(data_folder) / tag / file_name}"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    data.to_csv(output_path)
 
 
 class WheatImgDataset(Dataset):

@@ -1,73 +1,20 @@
-from utils import *
-from init import *
-from CustomClasses import NeuralNetwork, ImageDataset, CNN
-from torchvision import models
-from torchvision.models import MobileNet_V3_Small_Weights
 import torch
-from torch import nn
 from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision import transforms
 
-from torchinfo import summary
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-TRANSFORM = transforms.Compose([transforms.Resize(224), transforms.ToTensor()])
-TRAINING_DATA = datasets.CIFAR10(
-    root="data", train=True, download=False, transform=TRANSFORM
-)
-TESTING_DATA = datasets.CIFAR10(
-    root="data", train=False, download=False, transform=TRANSFORM
-)
+def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
-IMAGE, _ = TRAINING_DATA[0]
-C, H, W = image_shape(IMAGE)
-
-CLASSES = TRAINING_DATA.classes
-
-
-print(f"Classes are: {CLASSES}")
-
-BATCH_SIZE = 64
-
-TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
-TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
-
-DEVICE = (
-    torch.accelerator.current_accelerator().type
-    if torch.accelerator.is_available()
-    else "cpu"
-)
-
-print("Device: ", DEVICE)
-
-Net = models.MobileNetV3
-# MODEL = NeuralNetwork(input_size=H * W, output_size=len(CLASSES)).to(DEVICE)
-
-MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
-for param in MODEL.parameters():
-    param.requires_grad = False
-
-MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
-
-
-# MODEL = CNN(in_channels=1, out_channels=3, kernel_size=5, out_features=len(CLASSES)).to(
-#     DEVICE
-# )
-MODEL_PATH = "models/model.pth"
-
-EPOCHS = 5
-
-# summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
-
-
-def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
+    val_loss = []
+
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(DEVICE), y.to(DEVICE)
 
         # Compute prediction error
         pred = model(X)
+
         loss = loss_fn(pred, y)
 
         # Backpropagation
@@ -78,9 +25,12 @@ def train(dataloader: DataLoader, model: Net, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            val_loss.append(loss)
+    val_loss = sum(val_loss) / len(val_loss)
+    return val_loss
 
 
-def test(dataloader, model: Net, loss_fn):
+def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
@@ -93,12 +43,14 @@ def test(dataloader, model: Net, loss_fn):
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
+
     print(
         f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
     )
+    return correct, test_loss
 
 
-def evaluate_model(model: Net, test_data, device, classes: list):
+def eval_general(model, test_data, device, classes: list):
     """
     evaluate model accuracy against a list of classes
 
@@ -123,16 +75,17 @@ def evaluate_model(model: Net, test_data, device, classes: list):
             predicted, actual = classes[pred[0].argmax(0)], classes[label]
             preds_images.append((image, predicted))
             print(f'Predicted: "{predicted}", Actual: "{actual}"')
-    show_predictions(preds_images)
 
 
-def eval2(testloader, model: Net, classes):
+def eval_per_class(testloader, model, classes):
     correct = 0
     total = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in testloader:
             images, labels = data
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
             # calculate outputs by running images through the network
             outputs = model(images)
             # the class with the highest energy is what we choose as prediction
@@ -151,6 +104,8 @@ def eval2(testloader, model: Net, classes):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
             # collect the correct predictions for each class
@@ -161,36 +116,8 @@ def eval2(testloader, model: Net, classes):
 
     # print accuracy for each class
     for classname, correct_count in correct_pred.items():
-        accuracy = 100 * float(correct_count) / total_pred[classname]
-        print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
-
-
-def main():
-
-    # requirements()
-
-    model = MODEL
-    model_exists = file_exists(MODEL_PATH)
-    if model_exists:
-        model = load_model(MODEL_PATH, model)
-        evaluate_model(model, TESTING_DATA, DEVICE, CLASSES)
-        eval2(TEST_LOADER, model, CLASSES)
-        return
-
-    loss_fn = nn.CrossEntropyLoss()  # for single class
-    # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
-    # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-    for t in range(EPOCHS):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train(TRAIN_LOADER, model, loss_fn, optimizer)
-        test(TEST_LOADER, model, loss_fn)
-    print("Done!")
-    save_model(model, path=MODEL_PATH)
-    evaluate_model(model, TESTING_DATA, DEVICE, CLASSES)
-    eval2(TEST_LOADER, model, CLASSES)
-
-
-if __name__ == "__main__":
-    main()
+        if total_pred[classname] == 0:
+            print(f"Total predictions for {classname} = {total_pred[classname]}")
+        else:
+            accuracy = 100 * float(correct_count) / total_pred[classname]
+            print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
