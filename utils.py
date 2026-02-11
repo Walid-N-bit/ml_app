@@ -154,11 +154,11 @@ def cmd_args():
     parser = argparse.ArgumentParser(
         description="options for training, testing, and evaluating pytorch model"
     )
-    parser.add_argument("--epochs", type=int, default=20, help="")
-    parser.add_argument("--batch", type=int, default=64, help="")
-    parser.add_argument("--lr", type=float, default=1e-3, help="default learning rate")
-    parser.add_argument("--freeze", action="store_true", help="freeze backbone")
-    parser.add_argument("--load", type=str, help="")
+    parser.add_argument("--epochs","-e", type=int, default=20, help="")
+    parser.add_argument("--batch","-b", type=int, default=64, help="")
+    parser.add_argument("--lr", "-l", type=float, default=1e-3, help="default learning rate")
+    parser.add_argument("--freeze","-f", action="store_true", help="freeze backbone")
+    parser.add_argument("--load","-ld", type=str, help="")
     parser.add_argument("--train", "-tr", action="store_true", help="")
     # parser.add_argument("--test", "-ts", action="store_true", help="")
     parser.add_argument("--eval", "-ev", action="store_true", help="")
