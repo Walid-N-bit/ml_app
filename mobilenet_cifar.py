@@ -92,8 +92,9 @@ TEST_LOADER = DataLoader(
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
 # freeze head for feature extraction
-for param in MODEL.parameters():
-    param.requires_grad = False
+if FREEZE:
+    for param in MODEL.parameters():
+        param.requires_grad = False
 
 
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
@@ -120,13 +121,14 @@ def main():
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
     optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR)
 
-    # # for unfrozen backbone
-    # optimizer = torch.optim.Adam(
-    #     [
-    #         {"params": model.features.parameters(), "lr": 1e-5},
-    #         {"params": model.classifier.parameters(), "lr": LR},
-    #     ]
-    # )
+    # for unfrozen backbone
+    if not FREEZE:
+        optimizer = torch.optim.Adam(
+            [
+                {"params": model.features.parameters(), "lr": 1e-5},
+                {"params": model.classifier.parameters(), "lr": LR},
+            ]
+        )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
