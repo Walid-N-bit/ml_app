@@ -12,6 +12,7 @@ from torchvision import transforms
 
 from wheat_data_utils import WheatImgDataset, get_class_weights, oversampler, save_csv
 from model_utils import *
+from cifar_data_prep import TRAINING_DATA, TESTING_DATA, data_loader, CLASSES
 
 from torchinfo import summary
 
@@ -41,55 +42,16 @@ W_DECAY = args.decay
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("\nDevice: ", DEVICE)
 
-AUGS = (
-    # transforms.RandomHorizontalFlip(p=0.3),
-    # transforms.RandomVerticalFlip(p=0.3),
-)
-
-# imagenet images are 224x224 so we resize our custom data to 224
-TRANSFORM = transforms.Compose(
-    [
-        *AUGS,
-        transforms.Resize(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ]
-)
-
-
-TRAINING_DATA = datasets.CIFAR10(
-    root="data", train=True, download=True, transform=TRANSFORM
-)
-TESTING_DATA = datasets.CIFAR10(
-    root="data", train=False, download=True, transform=TRANSFORM
-)
-
 IMAGE, _ = TRAINING_DATA[0]
 C, H, W = image_shape(IMAGE)
 print(f"Images shape: {C, H, W}")
 
 
-CLASSES = TRAINING_DATA.classes
 print(f"\nClasses are:\n{CLASSES}\n")
 
-
-# TRAIN_LOADER = DataLoader(TRAINING_DATA, batch_size=BATCH_SIZE, shuffle=True)
-# TEST_LOADER = DataLoader(TESTING_DATA, batch_size=BATCH_SIZE, shuffle=True)
-
-pin_mem = False
-if DEVICE == "cuda":
-    pin_mem = True
-
-TRAIN_LOADER = DataLoader(
-    TRAINING_DATA,
-    num_workers=4,
-    pin_memory=pin_mem,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-)
-TEST_LOADER = DataLoader(
-    TESTING_DATA, num_workers=4, pin_memory=pin_mem, batch_size=BATCH_SIZE, shuffle=True
-)
+dev = "cuda" if torch.cuda.is_available() else "cpu"
+TRAIN_LOADER = data_loader(TRAINING_DATA, device=dev, batch_size=BATCH_SIZE)
+TEST_LOADER = data_loader(TESTING_DATA, device=dev, batch_size=BATCH_SIZE)
 
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)

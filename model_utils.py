@@ -121,3 +121,5 @@ def eval_per_class(testloader, model, classes):
         else:
             accuracy = 100 * float(correct_count) / total_pred[classname]
             print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
+
+    return labels, predictions
