@@ -42,7 +42,7 @@ def data_loader(
         num_workers=num_workers,
         pin_memory=pin_mem,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=(False if sampler else True),
         sampler=sampler,
     )
     return loader
