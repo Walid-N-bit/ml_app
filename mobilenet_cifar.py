@@ -124,15 +124,16 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
 
-    opt_algo = torch.optim.AdamW(weight_decay=W_DECAY)
-    optimizer = opt_algo(model.classifier.parameters(), lr=LR[1])
+    opt_algo = torch.optim.AdamW
+    optimizer = opt_algo(model.classifier.parameters(), lr=LR[1], weight_decay=W_DECAY)
     # for unfrozen backbone
     if not FREEZE:
         optimizer = opt_algo(
             [
                 {"params": model.features.parameters(), "lr": LR[0]},
                 {"params": model.classifier.parameters(), "lr": LR[1]},
-            ]
+            ],
+            weight_decay=W_DECAY,
         )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
