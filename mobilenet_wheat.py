@@ -35,6 +35,7 @@ IS_TRAIN = args.train
 # IS_TEST = args.test
 IS_EVAL = args.eval
 IS_SCHEDUL = args.scheduler
+W_DECAY = args.decay
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -119,13 +120,14 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9)
-    optimizer = torch.optim.Adam(model.classifier.parameters(), lr=LR[1])
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
+    opt_algo = torch.optim.AdamW(weight_decay=W_DECAY)
+    optimizer = opt_algo(model.classifier.parameters(), lr=LR[1])
     # for unfrozen backbone
     if not FREEZE:
-        optimizer = torch.optim.Adam(
+        optimizer = opt_algo(
             [
                 {"params": model.features.parameters(), "lr": LR[0]},
                 {"params": model.classifier.parameters(), "lr": LR[1]},
@@ -163,11 +165,11 @@ def main():
             }
         )
 
-        file_name = sys.argv[0].strip(".py")
-        TAG = f"{file_name}{'_frozen' if FREEZE else '_unfrozen'}_lr:{LR}"
-        save_csv(tag=TAG, batch_size=BATCH_SIZE, data=df)
-        save_path = f"models/{TAG}_batch-size:{BATCH_SIZE}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}.pth"
-        save_model(model, path=save_path)
+        script_name = sys.argv[0].strip(".py")
+        TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
+        file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+        save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
+        save_model(model, path=f"models/{file_name}.pth")
 
     if IS_EVAL:
         print("Evaluation...")

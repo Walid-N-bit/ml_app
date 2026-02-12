@@ -130,5 +130,8 @@ def cmd_args():
     parser.add_argument(
         "--scheduler", "-s", action="store_true", help="Enable a schedular"
     )
+    parser.add_argument(
+        "--decay", "-d", type=float, default=1e-2, help="Set weight decay. default=1e-2"
+    )
 
     return parser.parse_args()
