@@ -8,5 +8,5 @@ tester.py
 compressed_images_wheat/
 compressed_images_wheat*
 *.png
-get_images.sh
+get_*.sh
 *worker.sh

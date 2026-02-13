@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
     size = len(dataloader.dataset)
@@ -80,6 +81,8 @@ def eval_general(model, test_data, device, classes: list):
 def eval_per_class(testloader, model, classes):
     correct = 0
     total = 0
+    actual_values = []
+    pred_values = []
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in testloader:
@@ -114,6 +117,8 @@ def eval_per_class(testloader, model, classes):
                     correct_pred[classes[label]] += 1
                 total_pred[classes[label]] += 1
 
+            actual_values.extend(labels)
+            pred_values.extend(predictions)
     # print accuracy for each class
     for classname, correct_count in correct_pred.items():
         if total_pred[classname] == 0:
@@ -122,4 +127,4 @@ def eval_per_class(testloader, model, classes):
             accuracy = 100 * float(correct_count) / total_pred[classname]
             print(f"Accuracy for class: {classname:5s} is {accuracy:.1f} %")
 
-    return labels, predictions
+    return actual_values, pred_values
