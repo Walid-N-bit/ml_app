@@ -1,7 +1,7 @@
 __pycache__/
 *venv*/
 notebook.ipynb
-models/
+*models/
 *data/
 pokemon-images-and-types/
 tester.py

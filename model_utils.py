@@ -8,7 +8,7 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
     size = len(dataloader.dataset)
     model.train()
-    val_loss = []
+    val_loss = 0
 
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(DEVICE), y.to(DEVICE)
@@ -17,6 +17,7 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
         pred = model(X)
 
         loss = loss_fn(pred, y)
+        val_loss += loss.item()
 
         # Backpropagation
         loss.backward()
@@ -27,7 +28,7 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
             val_loss.append(loss)
-    val_loss = sum(val_loss) / len(val_loss)
+    val_loss = val_loss / len(dataloader)
     return val_loss
 
 
@@ -45,13 +46,11 @@ def test(dataloader, model, loss_fn):
     test_loss /= num_batches
     correct /= size
 
-    print(
-        f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
-    )
+    print(f"\n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     return correct, test_loss
 
 
-def eval_general(model, test_data, device, classes: list):
+def eval_general(model, test_data, device, classes: list, print_res: bool = True):
     """
     evaluate model accuracy against a list of classes
 
@@ -64,6 +63,7 @@ def eval_general(model, test_data, device, classes: list):
     model.eval()
     samples = []
     preds_images = []
+
     for _ in range(6):
         sample = torch.randint(len(test_data), size=(1,)).item()
         image, label = test_data[sample]
@@ -75,7 +75,8 @@ def eval_general(model, test_data, device, classes: list):
             pred = model(image)
             predicted, actual = classes[pred[0].argmax(0)], classes[label]
             preds_images.append((image, predicted))
-            print(f'Predicted: "{predicted}", Actual: "{actual}"')
+            if print_res:
+                print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
 
 def eval_per_class(testloader, model, classes):
@@ -84,6 +85,7 @@ def eval_per_class(testloader, model, classes):
     actual_values = []
     pred_values = []
     # since we're not training, we don't need to calculate the gradients for our outputs
+    model.eval()
     with torch.no_grad():
         for data in testloader:
             images, labels = data
@@ -103,7 +105,7 @@ def eval_per_class(testloader, model, classes):
     correct_pred = {classname: 0 for classname in classes}
     total_pred = {classname: 0 for classname in classes}
 
-    # again no gradients needed
+    model.eval()
     with torch.no_grad():
         for data in testloader:
             images, labels = data

@@ -100,6 +100,10 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
 
+    script_name = sys.argv[0].strip(".py")
+    TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
+    file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+
     if IS_TRAIN:
         for t in range(EPOCHS):
             start_t = time.perf_counter()
@@ -110,6 +114,17 @@ def main():
             DURATIONS.append(elapsed_t)
             ACC.append(acc)
             AVG_LOSS.append(loss)
+
+            df = pd.DataFrame(
+                {
+                    "Epoch": range(1, EPOCHS + 1),
+                    "Accuracy": ACC,
+                    "Average_loss": AVG_LOSS,
+                    "Duration": DURATIONS,
+                }
+            )
+            save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
+
             # scheduler.step()
             if IS_SCHEDUL:
                 scheduler.step(val_loss)
@@ -121,20 +136,17 @@ def main():
         )
         print("###############################\n")
 
-        df = pd.DataFrame(
-            {
-                "Epoch": range(1, EPOCHS + 1),
-                "Accuracy": ACC,
-                "Average_loss": AVG_LOSS,
-                "Duration": DURATIONS,
-            }
-        )
-
-        script_name = sys.argv[0].strip(".py")
-        TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
-        file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
-        save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
         save_model(model, path=f"models/{file_name}.pth")
+
+        # df = pd.DataFrame(
+        #     {
+        #         "Epoch": range(1, EPOCHS + 1),
+        #         "Accuracy": ACC,
+        #         "Average_loss": AVG_LOSS,
+        #         "Duration": DURATIONS,
+        #     }
+        # )
+        # save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
 
     if IS_EVAL:
         print("Evaluation...")

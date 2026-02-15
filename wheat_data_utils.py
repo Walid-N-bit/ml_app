@@ -136,9 +136,17 @@ def save_csv(
     path: str,
     data: pd.DataFrame,
 ):
-
     os.makedirs(os.path.dirname(path), exist_ok=True)
     data.to_csv(path)
+
+
+def update_csv(file_path: str, new_row: pd.DataFrame):
+    old_rows = pd.read_csv(file_path, index_col=0)
+    df = pd.concat([old_rows, new_row], ignore_index=True)
+    df.to_csv(file_path)
+
+
+
 
 
 class WheatImgDataset(Dataset):

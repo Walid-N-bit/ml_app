@@ -2,7 +2,7 @@ from wheat_data_utils import WheatImgDataset, oversampler
 from torchvision import datasets
 from torchvision import transforms
 from typing import Literal
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 
 # imagenet images are 224x224 so we resize our custom data to 224
@@ -14,9 +14,16 @@ TRANSFORM = transforms.Compose(
     ]
 )
 
-TRAINING_DATA = WheatImgDataset(
+DATASET = WheatImgDataset(
     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
 )
+size = len(DATASET)
+
+
+TRAINING_DATA, VALIDATION_DATA = random_split(
+    DATASET, [int(0.8 * size), int(0.2 * size)]
+)
+
 TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
 )

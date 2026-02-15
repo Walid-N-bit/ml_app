@@ -13,7 +13,13 @@ from torchvision import transforms
 from wheat_data_utils import WheatImgDataset, get_class_weights, oversampler, save_csv
 from model_utils import *
 from torchinfo import summary
-from wheat_data_prep import TRAINING_DATA, TESTING_DATA, CLASSES, data_loader
+from wheat_data_prep import (
+    TRAINING_DATA,
+    VALIDATION_DATA,
+    TESTING_DATA,
+    CLASSES,
+    data_loader,
+)
 
 from datetime import datetime
 import sys
@@ -55,7 +61,11 @@ TRAIN_LOADER = data_loader(TRAINING_DATA, device=dev, batch_size=BATCH_SIZE)
 TEST_LOADER = data_loader(
     TRAINING_DATA, device=dev, batch_size=BATCH_SIZE, sampler=None
 )
+VAL_LOADER = data_loader(
+    VALIDATION_DATA, device=dev, batch_size=BATCH_SIZE, sampler=None
+)
 
+from torch.nn import Dropout, Dropout2d
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
@@ -65,7 +75,9 @@ if FREEZE:
         param.requires_grad = False
 
 
+MODEL.classifier[2] = nn.Dropout(p=0.5, inplace=True)
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
+MODEL.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
 
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
@@ -103,19 +115,36 @@ def main():
         )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
+
+    script_name = sys.argv[0].strip(".py")
+    TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
+    file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+
     if IS_TRAIN:
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
             val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
-            acc, loss = test(TEST_LOADER, model, loss_fn)
+            acc, loss = test(VAL_LOADER, model, loss_fn)
             elapsed_t = time.perf_counter() - start_t
             DURATIONS.append(elapsed_t)
             ACC.append(acc)
             AVG_LOSS.append(loss)
+
+            df = pd.DataFrame(
+                {
+                    "Epoch": range(1, EPOCHS + 1),
+                    "Accuracy": ACC,
+                    "Average_loss": AVG_LOSS,
+                    "Duration": DURATIONS,
+                }
+            )
+            save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
+
             # scheduler.step()
             if IS_SCHEDUL:
                 scheduler.step(val_loss)
+
         print("\nEnd of Training!\n")
         TOTAL_TIME = time.perf_counter() - t0
         print("###############################\n")
@@ -124,20 +153,17 @@ def main():
         )
         print("###############################\n")
 
-        df = pd.DataFrame(
-            {
-                "Epoch": range(1, EPOCHS + 1),
-                "Accuracy": ACC,
-                "Average_loss": AVG_LOSS,
-                "Duration": DURATIONS,
-            }
-        )
-
-        script_name = sys.argv[0].strip(".py")
-        TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
-        file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
-        save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
         save_model(model, path=f"models/{file_name}.pth")
+
+        # df = pd.DataFrame(
+        #     {
+        #         "Epoch": range(1, EPOCHS + 1),
+        #         "Accuracy": ACC,
+        #         "Average_loss": AVG_LOSS,
+        #         "Duration": DURATIONS,
+        #     }
+        # )
+        # save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
 
     if IS_EVAL:
         print("Evaluation...")
@@ -150,7 +176,7 @@ def main():
         print("End of Evaluation!")
         eval_time = time.perf_counter() - t1
         TOTAL_TIME += eval_time
-        print("##########################\n")
+        print("\n##########################\n")
         print(
             f"# Evaluation time: {time.strftime("%H:%M:%S", time.gmtime(eval_time))} #\n"
         )
