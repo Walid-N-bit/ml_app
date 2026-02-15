@@ -19,9 +19,10 @@ DATASET = WheatImgDataset(
 )
 size = len(DATASET)
 
+train_size = int(0.8 * size)
 
 TRAINING_DATA, VALIDATION_DATA = random_split(
-    DATASET, [int(0.8 * size), int(0.2 * size)]
+    DATASET, [train_size, (size - train_size)]
 )
 
 TESTING_DATA = WheatImgDataset(
