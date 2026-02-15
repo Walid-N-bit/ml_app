@@ -30,7 +30,7 @@ TESTING_DATA = WheatImgDataset(
 )
 
 
-CLASSES = TRAINING_DATA.classes.values()
+CLASSES = DATASET.classes.values()
 
 SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
 
