@@ -167,7 +167,7 @@ class WheatImgDataset(Dataset):
         # using PIL because torchvision.transforms expect it
         image = Image.open(img_path).convert("RGB")
 
-        label = self.img_labels.loc[idx, 1]
+        label = self.img_labels.iloc[idx, 1]
         if self.transform:
             image = self.transform(image)
         if self.target_transform:

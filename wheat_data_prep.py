@@ -3,7 +3,7 @@ from torchvision import datasets
 from torchvision import transforms
 from typing import Literal
 from torch.utils.data import DataLoader, random_split
-
+import torch
 
 # imagenet images are 224x224 so we resize our custom data to 224
 TRANSFORM = transforms.Compose(
@@ -22,12 +22,27 @@ size = len(DATASET)
 train_size = int(0.8 * size)
 
 TRAINING_DATA, VALIDATION_DATA = random_split(
-    DATASET, [train_size, (size - train_size)]
+    DATASET,
+    [train_size, (size - train_size)],
+    generator=torch.Generator().manual_seed(33),
 )
 
 TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
 )
+
+###################################
+# # Debug your dataset
+# print(f"CSV rows: {len(DATASET)}")
+
+# # Try to access each item
+# for i in range(len(DATASET)):
+#     try:
+#         item = DATASET[i]
+#     except Exception as e:
+#         print(f"Error at index {i}: {e}")
+#         break
+###################################
 
 
 CLASSES = DATASET.classes.values()
