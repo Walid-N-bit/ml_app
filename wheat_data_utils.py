@@ -113,19 +113,22 @@ def get_class_weights(data_path: str) -> torch.Tensor:
     return class_weights / class_weights.sum()
 
 
-def oversampler(data_path: str) -> WeightedRandomSampler:
+def oversampler(data_path: str, subset_indices: list = []) -> WeightedRandomSampler:
 
     from collections import Counter
 
     data = pd.read_csv(data_path)
+    if len(subset_indices) > 0:
+        data = data.iloc[subset_indices]
     class_counts = Counter(data["class_name"])  # counter dict
     class_sample_weights = {c: 1.0 / count for c, count in class_counts.items()}
-    sample_weights = [0] * len(data)
+    # sample_weights = [0] * len(data)
+    sample_weights = []
 
-    for idx, item in data.iterrows():
+    for _, item in data.iterrows():
         class_name = item["class_name"]
         class_weight = class_sample_weights.get(class_name)
-        sample_weights[idx] = class_weight
+        sample_weights.append(class_weight)
     sampler = WeightedRandomSampler(
         sample_weights, num_samples=len(sample_weights), replacement=True
     )
@@ -144,9 +147,6 @@ def update_csv(file_path: str, new_row: pd.DataFrame):
     old_rows = pd.read_csv(file_path, index_col=0)
     df = pd.concat([old_rows, new_row], ignore_index=True)
     df.to_csv(file_path)
-
-
-
 
 
 class WheatImgDataset(Dataset):

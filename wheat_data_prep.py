@@ -17,6 +17,7 @@ TRANSFORM = transforms.Compose(
 DATASET = WheatImgDataset(
     data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
 )
+
 size = len(DATASET)
 
 train_size = int(0.8 * size)
@@ -27,34 +28,24 @@ TRAINING_DATA, VALIDATION_DATA = random_split(
     generator=torch.Generator().manual_seed(33),
 )
 
+
 TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
 )
 
-###################################
-# # Debug your dataset
-# print(f"CSV rows: {len(DATASET)}")
-
-# # Try to access each item
-# for i in range(len(DATASET)):
-#     try:
-#         item = DATASET[i]
-#     except Exception as e:
-#         print(f"Error at index {i}: {e}")
-#         break
-###################################
-
 
 CLASSES = DATASET.classes.values()
 
-SAMPLER = oversampler(data_path="compressed_images_wheat/train.csv")
+TRAIN_SAMPLER = oversampler(
+    data_path="compressed_images_wheat/train.csv", subset_indices=TRAINING_DATA.indices
+)
 
 
 def data_loader(
     data,
     device: Literal["cuda", "cpu"],
     batch_size: int,
-    sampler=SAMPLER,
+    sampler=None,
     num_workers: int = 4,
 ):
     pin_mem = False

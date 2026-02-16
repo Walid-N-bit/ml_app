@@ -17,6 +17,7 @@ from wheat_data_prep import (
     TRAINING_DATA,
     VALIDATION_DATA,
     TESTING_DATA,
+    TRAIN_SAMPLER,
     CLASSES,
     data_loader,
 )
@@ -27,8 +28,10 @@ import time
 from tempfile import TemporaryDirectory
 
 
-ACC = []
-AVG_LOSS = []
+TRAIN_ACC = []
+TRAIN_LOSS = []
+VAL_ACC = []
+VAL_LOSS = []
 DURATIONS = []
 TOTAL_TIME = 0
 
@@ -57,12 +60,18 @@ print(f"Images shape: {C, H, W}")
 print(f"\nClasses are:\n{CLASSES}\n")
 
 dev = "cuda" if torch.cuda.is_available() else "cpu"
-TRAIN_LOADER = data_loader(TRAINING_DATA, device=dev, batch_size=BATCH_SIZE)
+TRAIN_LOADER = data_loader(
+    TRAINING_DATA, device=dev, batch_size=BATCH_SIZE, sampler=TRAIN_SAMPLER
+)
 TEST_LOADER = data_loader(
-    TRAINING_DATA, device=dev, batch_size=BATCH_SIZE, sampler=None
+    TRAINING_DATA,
+    device=dev,
+    batch_size=BATCH_SIZE,
 )
 VAL_LOADER = data_loader(
-    VALIDATION_DATA, device=dev, batch_size=BATCH_SIZE, sampler=None
+    VALIDATION_DATA,
+    device=dev,
+    batch_size=BATCH_SIZE,
 )
 
 from torch.nn import Dropout, Dropout2d
@@ -124,18 +133,22 @@ def main():
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
-            val_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
-            acc, loss = test(VAL_LOADER, model, loss_fn)
+            train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+            val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
             elapsed_t = time.perf_counter() - start_t
             DURATIONS.append(elapsed_t)
-            ACC.append(acc)
-            AVG_LOSS.append(loss)
+            TRAIN_ACC.append(train_acc)
+            TRAIN_LOSS.append(train_loss)
+            VAL_ACC.append(val_acc)
+            VAL_LOSS.append(val_acc)
 
             df = pd.DataFrame(
                 {
                     "Epoch": range(1, EPOCHS + 1),
-                    "Accuracy": ACC,
-                    "Average_loss": AVG_LOSS,
+                    "Training_accuracy": TRAIN_ACC,
+                    "Training_loss": TRAIN_LOSS,
+                    "Validation_accuracy": TRAIN_ACC,
+                    "Validation_loss": TRAIN_LOSS,
                     "Duration": DURATIONS,
                 }
             )
@@ -170,7 +183,7 @@ def main():
         t1 = time.perf_counter()
 
         classes_list = list(CLASSES)
-        eval_general(model, TESTING_DATA, DEVICE, classes_list)
+        eval_avg_acc(model, TESTING_DATA, print_res=True)
         eval_per_class(TEST_LOADER, model, classes_list)
 
         print("End of Evaluation!")

@@ -3,21 +3,24 @@ from torch.utils.data import DataLoader
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+from torchvision import models
+
 
 def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
     size = len(dataloader.dataset)
     model.train()
-    val_loss = 0
+    train_acc, train_loss = 0, 0
 
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(DEVICE), y.to(DEVICE)
 
         # Compute prediction error
         pred = model(X)
-
         loss = loss_fn(pred, y)
-        val_loss += loss.item()
+
+        train_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
+        train_loss += loss.item()
 
         # Backpropagation
         loss.backward()
@@ -27,27 +30,31 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), (batch + 1) * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-            val_loss.append(loss)
-    val_loss = val_loss / len(dataloader)
-    return val_loss
+
+    train_acc = train_acc / size
+    train_loss = train_loss / size
+
+    return train_acc, train_loss
 
 
 def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
-    test_loss, correct = 0, 0
+    test_loss, test_acc = 0, 0
+
+    model.eval()
     with torch.no_grad():
         for X, y in dataloader:
             X, y = X.to(DEVICE), y.to(DEVICE)
             pred = model(X)
             test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            test_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
-    correct /= size
+    test_acc /= size
 
-    print(f"\n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    return correct, test_loss
+    print(f"\n Accuracy: {(100*test_acc):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return test_acc, test_loss
 
 
 def eval_general(model, test_data, device, classes: list, print_res: bool = True):
@@ -79,11 +86,9 @@ def eval_general(model, test_data, device, classes: list, print_res: bool = True
                 print(f'Predicted: "{predicted}", Actual: "{actual}"')
 
 
-def eval_per_class(testloader, model, classes):
+def eval_avg_acc(model, testloader, print_res: bool = True):
     correct = 0
     total = 0
-    actual_values = []
-    pred_values = []
     # since we're not training, we don't need to calculate the gradients for our outputs
     model.eval()
     with torch.no_grad():
@@ -97,10 +102,17 @@ def eval_per_class(testloader, model, classes):
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+    if print_res:
+        print(
+            f"Accuracy of the network on the 10000 test images: {100 * correct // total} %"
+        )
+    return correct // total
 
-    print(
-        f"Accuracy of the network on the 10000 test images: {100 * correct // total} %"
-    )
+
+def eval_per_class(testloader, model, classes):
+
+    actual_values = []
+    pred_values = []
     # prepare to count predictions for each class
     correct_pred = {classname: 0 for classname in classes}
     total_pred = {classname: 0 for classname in classes}
