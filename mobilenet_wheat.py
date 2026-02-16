@@ -106,10 +106,11 @@ def main():
 
     model.to(DEVICE)
 
-    class_weights = get_class_weights(
-        "compressed_images_wheat/train.csv", TRAINING_DATA.indices
-    ).to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss(weight=class_weights)  # for single class
+    # class_weights = get_class_weights(
+    #     "compressed_images_wheat/train.csv", TRAINING_DATA.indices
+    # ).to(DEVICE)
+    # loss_fn = nn.CrossEntropyLoss(weight=class_weights)  # for single class
+    loss_fn = nn.CrossEntropyLoss()  # for single class
 
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
