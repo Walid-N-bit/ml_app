@@ -33,13 +33,13 @@ TESTING_DATA = WheatImgDataset(
     data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
 )
 
-#######################################################
-print(f"Train size: {len(TRAINING_DATA)}")
-print(f"Val size: {len(VALIDATION_DATA)}")
-print(f"Test size: {len(TESTING_DATA)}")
-print(f"First train index: {TRAINING_DATA.indices[0]}")
-print(f"First val index: {VALIDATION_DATA.indices[0]}")
-#######################################################
+# #######################################################
+# print(f"Train size: {len(TRAINING_DATA)}")
+# print(f"Val size: {len(VALIDATION_DATA)}")
+# print(f"Test size: {len(TESTING_DATA)}")
+# print(f"First train index: {TRAINING_DATA.indices[0]}")
+# print(f"First val index: {VALIDATION_DATA.indices[0]}")
+# #######################################################
 
 CLASSES = DATASET.classes.values()
 
