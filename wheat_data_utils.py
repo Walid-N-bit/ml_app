@@ -172,4 +172,5 @@ class WheatImgDataset(Dataset):
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
+        label = torch.tensor(label, dtype=torch.long)
         return image, label

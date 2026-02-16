@@ -60,8 +60,10 @@ def load_model(path: str, model):
     :type path: str
     :param device: device the model uses
     """
-    # model = NeuralNetwork().to(device)
-    model.load_state_dict(torch.load(path, weights_only=True))
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    state_dict = torch.load(path, map_location=device)
+    model.load_state_dict(state_dict)
     return model
 
 

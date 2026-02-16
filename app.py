@@ -33,7 +33,6 @@ TRAIN_LOSS = []
 VAL_ACC = []
 VAL_LOSS = []
 DURATIONS = []
-global TOTAL_TIME
 TOTAL_TIME = 0
 
 args = cmd_args()
@@ -102,10 +101,8 @@ def main():
         model = load_model(MODEL_PATH, model)
 
     model.to(DEVICE)
-
-    class_weights = get_class_weights(TRAINING_DATA).to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss(weight=class_weights)  # for single class
-
+    # loss_fn = nn.CrossEntropyLoss(weight=CLASS_WEIGHTS)  # for single class
+    loss_fn = nn.CrossEntropyLoss()  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -180,7 +177,6 @@ def main():
     if IS_EVAL:
         print("Evaluation...")
         t1 = time.perf_counter()
-        print(TEST_LOADER.dataset[0])
 
         classes_list = list(CLASSES)
         eval_avg_acc(model, TESTING_DATA, print_res=True)

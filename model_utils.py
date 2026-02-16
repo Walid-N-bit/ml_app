@@ -95,10 +95,12 @@ def eval_avg_acc(model, testloader, print_res: bool = True):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
-            # images = images.to(DEVICE)
-            # labels = labels.to(DEVICE)
-            images = torch.as_tensor(images).to(DEVICE)
-            labels = torch.as_tensor(labels).to(DEVICE)
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
+            if images.dim() == 3:
+                images = images.unsqueeze(0)
+            if labels.dim() == 0:
+                labels = labels.unsqueeze(0)
             # calculate outputs by running images through the network
             outputs = model(images)
             # the class with the highest energy is what we choose as prediction
@@ -124,10 +126,8 @@ def eval_per_class(testloader, model, classes):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
-            # images = images.to(DEVICE)
-            # labels = labels.to(DEVICE)
-            images = torch.as_tensor(images).to(DEVICE)
-            labels = torch.as_tensor(labels).to(DEVICE).unsqueeze(0)
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
             outputs = model(images)
             _, predictions = torch.max(outputs, 1)
             # collect the correct predictions for each class
