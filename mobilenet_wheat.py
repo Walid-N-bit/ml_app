@@ -84,7 +84,7 @@ if FREEZE:
         param.requires_grad = False
 
 
-MODEL.classifier[2] = nn.Dropout(p=0.5, inplace=True)
+MODEL.classifier[2] = nn.Dropout(p=0.3, inplace=True)
 MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
 MODEL.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
 
@@ -125,7 +125,7 @@ def main():
             weight_decay=W_DECAY,
         )
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=5)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=10)
 
     script_name = sys.argv[0].strip(".py")
     TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
@@ -138,7 +138,8 @@ def main():
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
-            print(f"Learning rate: {optimizer.param_groups[0]['lr']}\n")
+            print(f"Features learning rate: {optimizer.param_groups[0]['lr']}")
+            print(f"Classifier learning rate: {optimizer.param_groups[1]['lr']}\n")
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
 
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
