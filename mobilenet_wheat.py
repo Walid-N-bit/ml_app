@@ -130,16 +130,13 @@ def main():
 
     if IS_TRAIN:
         epochs = []
+        print(f"Training on {len(TRAIN_LOADER.dataset)} samples")
+        print(f"Validating on {len(VAL_LOADER.dataset)} samples")
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
-            print(f"Training on {len(TRAIN_LOADER.dataset)} samples")
-
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
-            print(f"Validating on {len(VAL_LOADER.dataset)} samples")
-
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
-            print(f"Train: {train_acc:.4f}, Val: {val_acc:.4f}")
 
             end_t = time.perf_counter()
             DURATIONS.append(end_t - start_t)
