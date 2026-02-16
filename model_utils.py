@@ -9,6 +9,7 @@ from torchvision import models
 def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
     size = len(dataloader.dataset)
+    num_batches = len(dataloader)
     model.train()
     train_acc, train_loss = 0, 0
 
@@ -32,7 +33,7 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
     train_acc = train_acc / size
-    train_loss = train_loss / size
+    train_loss = train_loss / num_batches
 
     return train_acc, train_loss
 

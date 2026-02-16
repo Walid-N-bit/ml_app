@@ -6,7 +6,7 @@ from torchvision.models import MobileNet_V3_Small_Weights
 import torch
 from torch.optim import lr_scheduler
 from torch import nn
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import DataLoader, WeightedRandomSampler, random_split
 from torchvision import datasets
 from torchvision import transforms
 
@@ -14,9 +14,6 @@ from wheat_data_utils import WheatImgDataset, get_class_weights, oversampler, sa
 from model_utils import *
 from torchinfo import summary
 from wheat_data_prep import (
-    TRAINING_DATA,
-    VALIDATION_DATA,
-    TESTING_DATA,
     TRAIN_SAMPLER,
     CLASSES,
     data_loader,
@@ -26,6 +23,32 @@ from datetime import datetime
 import sys
 import time
 from tempfile import TemporaryDirectory
+
+TRANSFORM = transforms.Compose(
+    [
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
+
+DATASET = WheatImgDataset(
+    data_file="compressed_images_wheat/train.csv", transform=TRANSFORM
+)
+
+size = len(DATASET)
+
+train_size = int(0.8 * size)
+
+TRAINING_DATA, VALIDATION_DATA = random_split(
+    DATASET,
+    [train_size, (size - train_size)],
+    generator=torch.Generator().manual_seed(33),
+)
+
+
+TESTING_DATA = WheatImgDataset(
+    data_file="compressed_images_wheat/test.csv", transform=TRANSFORM
+)
 
 
 TRAIN_ACC = []
@@ -169,6 +192,16 @@ def main():
         print("###############################\n")
 
         save_model(model, path=f"models/{file_name}.pth")
+
+        # df = pd.DataFrame(
+        #     {
+        #         "Epoch": range(1, EPOCHS + 1),
+        #         "Accuracy": ACC,
+        #         "Average_loss": AVG_LOSS,
+        #         "Duration": DURATIONS,
+        #     }
+        # )
+        # save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
 
     if IS_EVAL:
         print("Evaluation...")
