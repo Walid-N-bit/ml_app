@@ -130,8 +130,8 @@ def main():
     file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
 
     if IS_TRAIN:
+        epochs = []
         for t in range(EPOCHS):
-            epochs = []
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
