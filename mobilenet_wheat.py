@@ -74,7 +74,6 @@ VAL_LOADER = data_loader(
     batch_size=BATCH_SIZE,
 )
 
-from torch.nn import Dropout, Dropout2d
 
 MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
 
@@ -134,8 +133,14 @@ def main():
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
+            print(f"Training on {len(TRAIN_LOADER.dataset)} samples")
+
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+            print(f"Validating on {len(VAL_LOADER.dataset)} samples")
+
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
+            print(f"Train: {train_acc:.4f}, Val: {val_acc:.4f}")
+
             end_t = time.perf_counter()
             DURATIONS.append(end_t - start_t)
             TRAIN_ACC.append(train_acc)
@@ -149,8 +154,8 @@ def main():
                     "Epoch": epochs,
                     "Training_accuracy": TRAIN_ACC,
                     "Training_loss": TRAIN_LOSS,
-                    "Validation_accuracy": TRAIN_ACC,
-                    "Validation_loss": TRAIN_LOSS,
+                    "Validation_accuracy": VAL_ACC,
+                    "Validation_loss": VAL_LOSS,
                     "Duration": DURATIONS,
                 }
             )
