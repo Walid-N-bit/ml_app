@@ -141,6 +141,10 @@ def main():
             TRAIN_LOSS.append(train_loss)
             VAL_ACC.append(val_acc)
             VAL_LOSS.append(val_acc)
+            print(VAL_ACC)
+            print(VAL_LOSS)
+            print(TRAIN_ACC)
+            print(TRAIN_LOSS)
 
             df = pd.DataFrame(
                 {
