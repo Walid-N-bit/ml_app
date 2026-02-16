@@ -135,7 +135,9 @@ def main():
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
+            print(f"Learning rate: {optimizer.param_groups[0]['lr']}\n")
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
 
             end_t = time.perf_counter()
