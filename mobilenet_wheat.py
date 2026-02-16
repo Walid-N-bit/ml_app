@@ -142,6 +142,13 @@ def main():
             VAL_ACC.append(val_acc)
             VAL_LOSS.append(val_acc)
 
+            print(DURATIONS)
+            print(TRAIN_ACC)
+            print(TRAIN_LOSS)
+            print(VAL_ACC)
+            print(VAL_LOSS)
+            print(list(range(1, t + 1)))
+
             df = pd.DataFrame(
                 {
                     "Epoch": list(range(1, t + 1)),
