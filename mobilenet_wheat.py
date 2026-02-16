@@ -135,19 +135,19 @@ def main():
             print(f"Epoch {t+1}\n-------------------------------")
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
-            elapsed_t = time.perf_counter() - start_t
-            DURATIONS.append(elapsed_t)
+            end_t = time.perf_counter()
+            DURATIONS.append(end_t - start_t)
             TRAIN_ACC.append(train_acc)
             TRAIN_LOSS.append(train_loss)
             VAL_ACC.append(val_acc)
             VAL_LOSS.append(val_acc)
 
-            print(DURATIONS)
-            print(TRAIN_ACC)
-            print(TRAIN_LOSS)
-            print(VAL_ACC)
-            print(VAL_LOSS)
-            print(list(range(1, t + 1)))
+            # print(DURATIONS)
+            # print(TRAIN_ACC)
+            # print(TRAIN_LOSS)
+            # print(VAL_ACC)
+            # print(VAL_LOSS)
+            # print(list(range(1, t + 1)))
 
             df = pd.DataFrame(
                 {
