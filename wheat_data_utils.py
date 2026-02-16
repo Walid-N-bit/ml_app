@@ -104,8 +104,10 @@ def data_summary(data_path: str) -> dict:
     return stats
 
 
-def get_class_weights(data_path: str) -> torch.Tensor:
+def get_class_weights(data_path: str, subset_indices: list = []) -> torch.Tensor:
     data = pd.read_csv(data_path)
+    if len(subset_indices) > 0:
+        data = data.iloc[subset_indices]
     _, counts = np.unique(data["class_name"], return_counts=True)
     class_counts = torch.tensor(counts)
     total_samples = class_counts.sum()
