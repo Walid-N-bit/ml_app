@@ -142,15 +142,9 @@ def main():
             VAL_ACC.append(val_acc)
             VAL_LOSS.append(val_acc)
 
-            print(range(1, t + 1))
-            print(len(TRAIN_ACC))
-            print(len(TRAIN_LOSS))
-            print(len(TRAIN_ACC))
-            print(len(TRAIN_LOSS))
-            
             df = pd.DataFrame(
                 {
-                    "Epoch": range(1, t + 1),
+                    "Epoch": list(range(1, t + 1)),
                     "Training_accuracy": TRAIN_ACC,
                     "Training_loss": TRAIN_LOSS,
                     "Validation_accuracy": TRAIN_ACC,
