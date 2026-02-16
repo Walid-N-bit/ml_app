@@ -30,6 +30,8 @@ from tempfile import TemporaryDirectory
 
 TRAIN_ACC = []
 TRAIN_LOSS = []
+FEATURES_LR = []
+CLASSIFIER_LR = []
 VAL_ACC = []
 VAL_LOSS = []
 DURATIONS = []
@@ -139,8 +141,10 @@ def main():
         for t in range(EPOCHS):
             start_t = time.perf_counter()
             print(f"Epoch {t+1}\n-------------------------------")
-            print(f"Features learning rate: {optimizer.param_groups[0]['lr']}")
-            print(f"Classifier learning rate: {optimizer.param_groups[1]['lr']}\n")
+            f_lr = optimizer.param_groups[0]["lr"]
+            c_lr = optimizer.param_groups[1]["lr"]
+            print(f"Features learning rate: {f_lr}")
+            print(f"Classifier learning rate: {c_lr}\n")
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
 
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
@@ -152,6 +156,8 @@ def main():
             VAL_ACC.append(val_acc)
             VAL_LOSS.append(val_loss)
             epochs.append(t + 1)
+            FEATURES_LR.append(f_lr)
+            CLASSIFIER_LR.append(c_lr)
 
             df = pd.DataFrame(
                 {
@@ -161,6 +167,8 @@ def main():
                     "Validation_accuracy": VAL_ACC,
                     "Validation_loss": VAL_LOSS,
                     "Duration": DURATIONS,
+                    "Features_lr": FEATURES_LR,
+                    "Classifier_lr": CLASSIFIER_LR,
                 }
             )
             save_csv(path=f"output_data/{TAG}/{file_name}.csv", data=df)
