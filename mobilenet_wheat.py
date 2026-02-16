@@ -177,6 +177,7 @@ def main():
     if IS_EVAL:
         print("Evaluation...")
         t1 = time.perf_counter()
+        print(TEST_LOADER.dataset[0])
 
         classes_list = list(CLASSES)
         eval_avg_acc(model, TESTING_DATA, print_res=True)
