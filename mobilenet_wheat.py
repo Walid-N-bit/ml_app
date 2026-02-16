@@ -42,6 +42,7 @@ BATCH_SIZE = args.batch
 LR = args.lr  # [backbone_lr, classifier_lr]
 FREEZE = args.freeze
 MODEL_PATH = args.load
+ARG_TAG = args.tag
 IS_TRAIN = args.train
 # IS_TEST = args.test
 IS_EVAL = args.eval
@@ -128,7 +129,7 @@ def main():
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=10)
 
     script_name = sys.argv[0].strip(".py")
-    TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}"
+    TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}{f'_{ARG_TAG}' if ARG_TAG else ''}"
     file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
 
     if IS_TRAIN:

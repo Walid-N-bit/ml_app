@@ -124,6 +124,7 @@ def cmd_args():
         help="Freeze model backbone parameters during training",
     )
     parser.add_argument("--load", "-ld", type=str, help="Load a model from a file")
+    parser.add_argument("--tag", "-t", type=str, help="Add a tag to the data file name")
     parser.add_argument(
         "--train", "-tr", action="store_true", help="Perform training + testing"
     )
