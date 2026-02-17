@@ -54,7 +54,6 @@ def test(dataloader, model, loss_fn):
     test_loss /= num_batches
     test_acc /= size
 
-    print(f"\n Accuracy: {(100*test_acc):>0.1f}%, Avg loss: {test_loss:>8f} \n")
     return test_acc, test_loss
 
 

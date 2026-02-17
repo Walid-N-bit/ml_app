@@ -148,9 +148,16 @@ def main():
             c_lr = optimizer.param_groups[1]["lr"]
             print(f"Features learning rate: {f_lr}")
             print(f"Classifier learning rate: {c_lr}\n")
+
             train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+            print(
+                f"Training metrics:\n Accuracy: {(100*train_acc):>0.1f}%, Avg loss: {train_loss:>8f} \n"
+            )
 
             val_acc, val_loss = test(VAL_LOADER, model, loss_fn)
+            print(
+                f"Validation metrics:\n Accuracy: {(100*val_acc):>0.1f}%, Avg loss: {val_loss:>8f} \n"
+            )
 
             end_t = time.perf_counter()
             DURATIONS.append(end_t - start_t)
