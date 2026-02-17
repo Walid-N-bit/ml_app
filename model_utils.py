@@ -20,7 +20,14 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer, mixer=None):
         pred = model(X)
         loss = loss_fn(pred, y)
 
-        train_acc += (pred.argmax(1) == y).type(torch.float).sum().item()
+        pred_labels = pred.argmax(1)
+
+        if y.ndim > 1:
+            target_labels = y.argmax(1)
+        else:
+            target_labels = y
+
+        train_acc += (pred_labels == target_labels).type(torch.float).sum().item()
         train_loss += loss.item()
 
         # Backpropagation
