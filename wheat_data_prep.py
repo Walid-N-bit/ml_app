@@ -1,6 +1,7 @@
 from wheat_data_utils import WheatImgDataset, oversampler
 from torchvision import datasets
 from torchvision import transforms
+from torchvision.transforms import v2
 from typing import Literal
 from torch.utils.data import DataLoader, random_split
 import torch
@@ -42,6 +43,10 @@ TESTING_DATA = WheatImgDataset(
 # #######################################################
 
 CLASSES = DATASET.classes.values()
+
+cutmix = v2.CutMix(num_classes=len(CLASSES))
+mixup = v2.MixUp(num_classes=len(CLASSES))
+cutmixup = v2.RandomChoice([cutmix, mixup])
 
 TRAIN_SAMPLER = oversampler(
     data_path="compressed_images_wheat/train.csv", subset_indices=TRAINING_DATA.indices

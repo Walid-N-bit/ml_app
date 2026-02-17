@@ -119,7 +119,7 @@ def cmd_args():
     )
     parser.add_argument(
         "--freeze",
-        "-f",
+        "-fr",
         action="store_true",
         help="Freeze model backbone parameters during training",
     )
@@ -130,7 +130,16 @@ def cmd_args():
     )
     # parser.add_argument("--test", "-ts", action="store_true", help="")
     parser.add_argument("--eval", "-ev", action="store_true", help="Perform evaluation")
-    parser.add_argument("--weights", "-w", action="store_true", help="Use class-weighted loss")
+    parser.add_argument(
+        "--mix",
+        "-m",
+        choices=["cutmix", "mixup", "cutmixup"],
+        default=None,
+        help="Apply CutMix, MixUp, or either randomly to image batches",
+    )
+    parser.add_argument(
+        "--weights", "-w", action="store_true", help="Use class-weighted loss"
+    )
     parser.add_argument(
         "--oversampler",
         "-os",

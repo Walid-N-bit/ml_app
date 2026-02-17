@@ -20,6 +20,9 @@ from wheat_data_prep import (
     TRAIN_SAMPLER,
     CLASSES,
     data_loader,
+    mixup,
+    cutmix,
+    cutmixup,
 )
 
 from datetime import datetime
@@ -52,6 +55,15 @@ IS_SCHEDUL = args.scheduler
 W_DECAY = args.decay
 OVERSAMPLER = args.oversampler
 WEIGHTS = args.weights
+MIX = args.mix
+
+match MIX:
+    case "cutmix":
+        MIX = cutmix
+    case "mixup":
+        MIX = mixup
+    case "cutmixup":
+        MIX = cutmixup
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -117,7 +129,7 @@ def main():
     loss_fn = nn.CrossEntropyLoss(
         weight=(class_weights if WEIGHTS else None)
     )  # for single class
-    
+
     # loss_fn = nn.CrossEntropyLoss()  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
@@ -156,7 +168,7 @@ def main():
             print(f"Features learning rate: {f_lr}")
             print(f"Classifier learning rate: {c_lr}\n")
 
-            train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer)
+            train_acc, train_loss = train(TRAIN_LOADER, model, loss_fn, optimizer, MIX)
             print(
                 f"Training metrics:\n Accuracy: {(100*train_acc):>0.1f}%, Avg loss: {train_loss:>8f} \n"
             )

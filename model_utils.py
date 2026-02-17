@@ -1,12 +1,11 @@
 import torch
 from torch.utils.data import DataLoader
+from torchvision import models
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-from torchvision import models
 
-
-def train(dataloader: DataLoader, model, loss_fn, optimizer):
+def train(dataloader: DataLoader, model, loss_fn, optimizer, mixer=None):
 
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
@@ -15,7 +14,8 @@ def train(dataloader: DataLoader, model, loss_fn, optimizer):
 
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(DEVICE), y.to(DEVICE)
-
+        if mixer:
+            X, y = mixer(X, y)
         # Compute prediction error
         pred = model(X)
         loss = loss_fn(pred, y)
