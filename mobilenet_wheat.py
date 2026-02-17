@@ -50,6 +50,8 @@ IS_TRAIN = args.train
 IS_EVAL = args.eval
 IS_SCHEDUL = args.scheduler
 W_DECAY = args.decay
+OVERSAMPLER = args.oversampler
+WEIGHTS = args.weights
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -65,7 +67,10 @@ print(f"\nClasses are:\n{CLASSES}\n")
 
 dev = "cuda" if torch.cuda.is_available() else "cpu"
 TRAIN_LOADER = data_loader(
-    TRAINING_DATA, device=dev, batch_size=BATCH_SIZE, sampler=TRAIN_SAMPLER
+    TRAINING_DATA,
+    device=dev,
+    batch_size=BATCH_SIZE,
+    sampler=(TRAIN_SAMPLER if OVERSAMPLER else None),
 )
 TEST_LOADER = data_loader(
     TESTING_DATA,
@@ -106,12 +111,14 @@ def main():
 
     model.to(DEVICE)
 
-    # class_weights = get_class_weights(
-    #     "compressed_images_wheat/train.csv", TRAINING_DATA.indices
-    # ).to(DEVICE)
-    # loss_fn = nn.CrossEntropyLoss(weight=class_weights)  # for single class
-    loss_fn = nn.CrossEntropyLoss()  # for single class
-
+    class_weights = get_class_weights(
+        "compressed_images_wheat/train.csv", TRAINING_DATA.indices
+    ).to(DEVICE)
+    loss_fn = nn.CrossEntropyLoss(
+        weight=(class_weights if WEIGHTS else None)
+    )  # for single class
+    
+    # loss_fn = nn.CrossEntropyLoss()  # for single class
     # loss_fn = nn.BCEWithLogitsLoss()  # for multiple classes
     # optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)

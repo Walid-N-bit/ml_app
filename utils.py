@@ -130,6 +130,13 @@ def cmd_args():
     )
     # parser.add_argument("--test", "-ts", action="store_true", help="")
     parser.add_argument("--eval", "-ev", action="store_true", help="Perform evaluation")
+    parser.add_argument("--weights", "-w", action="store_true", help="Use class-weighted loss")
+    parser.add_argument(
+        "--oversampler",
+        "-os",
+        action="store_true",
+        help="Enable oversampler for the training data",
+    )
     parser.add_argument(
         "--scheduler", "-s", action="store_true", help="Enable a schedular"
     )
