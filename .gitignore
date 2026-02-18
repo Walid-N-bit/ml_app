@@ -10,3 +10,4 @@ compressed_images_wheat*
 *.png
 get_*.sh
 *worker.sh
+*.exp

@@ -154,7 +154,7 @@ def main():
 
     script_name = sys.argv[0].strip(".py")
     TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}{f'_{ARG_TAG}' if ARG_TAG else ''}"
-    file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime("%H:%M:%S-%d.%m.%Y")}"
+    file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime('%H:%M:%S-%d.%m.%Y')}"
 
     if IS_TRAIN:
         epochs = []
