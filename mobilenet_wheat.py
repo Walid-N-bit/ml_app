@@ -210,7 +210,7 @@ def main():
         TOTAL_TIME = time.perf_counter() - t0
         print("###############################\n")
         print(
-            f"# Training time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
+            f"# Training time: {time.strftime('%H:%M:%S', time.gmtime(TOTAL_TIME))} #\n"
         )
         print("###############################\n")
 
@@ -229,11 +229,11 @@ def main():
         TOTAL_TIME += eval_time
         print("\n##########################\n")
         print(
-            f"# Evaluation time: {time.strftime("%H:%M:%S", time.gmtime(eval_time))} #\n"
+            f"# Evaluation time: {time.strftime('%H:%M:%S', time.gmtime(eval_time))} #\n"
         )
         print("##########################\n")
         print(
-            f"# Total elapsed time: {time.strftime("%H:%M:%S", time.gmtime(TOTAL_TIME))} #\n"
+            f"# Total elapsed time: {time.strftime('%H:%M:%S', time.gmtime(TOTAL_TIME))} #\n"
         )
         print("##########################\n")
 
