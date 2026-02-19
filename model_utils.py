@@ -34,7 +34,7 @@ def choose_model(model_name: str, freeze: bool, out_features: int):
                     param.requires_grad = False
 
             model.classifier[2] = nn.Dropout(p=0.5, inplace=True)
-            model.classifier[3] = nn.Linear(in_features=1024, out_features=out_features)
+            model.classifier[3] = nn.Linear(in_features=1280, out_features=out_features)
             # model.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
 
         case "efficientnet_b0":
@@ -47,7 +47,7 @@ def choose_model(model_name: str, freeze: bool, out_features: int):
                 in_features=1280, out_features=out_features, bias=True
             )
 
-    return model 
+    return model
 
 
 def train(dataloader: DataLoader, model, loss_fn, optimizer, mixer=None):
