@@ -48,6 +48,7 @@ def save_model(model, path: str):
     :param path: file path
     :type path: str
     """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     torch.save(model.state_dict(), path)
 
 
