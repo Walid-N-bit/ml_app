@@ -1,6 +1,5 @@
 from utils import *
 from init import *
-from CustomClasses import NeuralNetwork, ImageDataset, CNN
 from torchvision import models
 from torchvision.models import MobileNet_V3_Small_Weights
 import torch
@@ -55,6 +54,7 @@ IS_SCHEDUL = args.scheduler
 W_DECAY = args.decay
 OVERSAMPLER = args.oversampler
 WEIGHTS = args.weights
+MODEL_NAME = args.model
 MIX = args.mix
 
 match MIX:
@@ -96,17 +96,17 @@ VAL_LOADER = data_loader(
 )
 
 
-MODEL = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.DEFAULT).to(DEVICE)
+MODEL = choose_model(MODEL_NAME, FREEZE, len(CLASSES))
 
-# freeze head for feature extraction
-if FREEZE:
-    for param in MODEL.parameters():
-        param.requires_grad = False
+# # freeze head for feature extraction
+# if FREEZE:
+#     for param in MODEL.parameters():
+#         param.requires_grad = False
 
 
-MODEL.classifier[2] = nn.Dropout(p=0.3, inplace=True)
-MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
-MODEL.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
+# MODEL.classifier[2] = nn.Dropout(p=0.3, inplace=True)
+# MODEL.classifier[3] = nn.Linear(in_features=1024, out_features=len(CLASSES))
+# MODEL.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
 
 
 # summary(MODEL, input_size=(1, 3, 32, 32), device="cpu", verbose=1)
@@ -152,8 +152,8 @@ def main():
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, "min", patience=10)
 
-    script_name = sys.argv[0].strip(".py")
-    TAG = f"{script_name}{'_frozen' if FREEZE else '_unfrozen'}{f'_{ARG_TAG}' if ARG_TAG else ''}"
+    # script_name = sys.argv[0].strip(".py")
+    TAG = f"{MODEL_NAME}{'_frozen' if FREEZE else '_unfrozen'}{f'_{ARG_TAG}' if ARG_TAG else ''}"
     file_name = f"{TAG}_batch-size:{BATCH_SIZE}_lr:{LR}_w-decay:{W_DECAY}_{datetime.now().strftime('%H:%M:%S-%d.%m.%Y')}"
 
     if IS_TRAIN:
@@ -214,7 +214,7 @@ def main():
         )
         print("###############################\n")
 
-        save_model(model, path=f"models/{file_name}.pth")
+        save_model(model, path=f"models/{MODEL_NAME}/{file_name}.pth")
 
     if IS_EVAL:
         print("Evaluation...")

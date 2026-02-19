@@ -107,6 +107,12 @@ def cmd_args():
         "--epochs", "-e", type=int, default=20, help="Number of epochs. default=20"
     )
     parser.add_argument(
+        "--model",
+        "-m",
+        choices=["mobilenet_v3_small", "mobilenet_v3_large", "efficientnet_b0"],
+        help="Choose which pretrained model to use for transfer learning. choices=[mobilenet_v3_small, mobilenet_v3_large, efficientnet_b0]",
+    )
+    parser.add_argument(
         "--batch", "-b", type=int, default=64, help="Batch size. default = 64"
     )
     parser.add_argument(
@@ -132,7 +138,7 @@ def cmd_args():
     parser.add_argument("--eval", "-ev", action="store_true", help="Perform evaluation")
     parser.add_argument(
         "--mix",
-        "-m",
+        "-mx",
         choices=["cutmix", "mixup", "cutmixup"],
         default=None,
         help="Apply CutMix, MixUp, or either randomly to image batches",

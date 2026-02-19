@@ -1,8 +1,53 @@
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import models
+from torchvision.models import (
+    MobileNet_V3_Small_Weights,
+    MobileNet_V3_Large_Weights,
+    EfficientNet_B0_Weights,
+)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def choose_model(model_name: str, freeze: bool, out_features: int):
+    match model_name:
+        case "mobilenet_v3_small":
+            model = models.mobilenet_v3_small(
+                weights=MobileNet_V3_Small_Weights.DEFAULT
+            ).to(DEVICE)
+            if freeze:
+                for param in model.parameters():
+                    param.requires_grad = False
+
+            model.classifier[2] = nn.Dropout(p=0.3, inplace=True)
+            model.classifier[3] = nn.Linear(in_features=1024, out_features=out_features)
+            model.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
+
+        case "mobilenet_v3_large":
+            model = models.mobilenet_v3_large(MobileNet_V3_Large_Weights.DEFAULT).to(
+                DEVICE
+            )
+            if freeze:
+                for param in model.parameters():
+                    param.requires_grad = False
+
+            model.classifier[2] = nn.Dropout(p=0.5, inplace=True)
+            model.classifier[3] = nn.Linear(in_features=1024, out_features=out_features)
+            # model.classifier.insert(0, nn.Dropout(p=0.3, inplace=True))
+
+        case "efficientnet_b0":
+            model = models.efficientnet_b0(EfficientNet_B0_Weights.DEFAULT).to(DEVICE)
+            if freeze:
+                for param in model.parameters():
+                    param.requires_grad = False
+            model.classifier[0] = nn.Dropout(p=0.5, inplace=True)
+            model.classifier[1] = nn.Linear(
+                in_features=1280, out_features=out_features, bias=True
+            )
+
+    return model 
 
 
 def train(dataloader: DataLoader, model, loss_fn, optimizer, mixer=None):
